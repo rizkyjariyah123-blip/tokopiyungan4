@@ -766,8 +766,14 @@
     // Initialize Immersive Firebase Context
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
         // Fallback dummy config to prevent crashing if viewed locally
-        apiKey: "AIzaSy_dummy", authDomain: "dummy.firebaseapp.com", projectId: "dummy"
-    };
+        apiKey: "AIzaSyDWFtj_Ud9c3XSZo2OWPyGwqskFJVV3pxs",
+  authDomain: "jaya-mulya-toko.firebaseapp.com",
+  projectId: "jaya-mulya-toko",
+  storageBucket: "jaya-mulya-toko.firebasestorage.app",
+  messagingSenderId: "632283493920",
+  appId: "1:632283493920:web:9eeabc5095b874d116ae45",
+  measurementId: "G-2479M8TQJD"
+};
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'toko-piyungan';
     const fbApp = initializeApp(firebaseConfig);
     const auth = getAuth(fbApp);
