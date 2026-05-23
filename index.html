@@ -320,6 +320,22 @@
                        <button onclick="app.removeManualVoucher()" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-times text-sm"></i></button>
                    </div>
                </div>
+
+               <!-- START FITUR TUKAR POIN -->
+               <div id="points-container" class="mt-3 pt-3 border-t border-gray-200 hidden">
+                   <label class="block text-[10px] uppercase font-bold text-gray-500 mb-1">Program Loyalitas</label>
+                   <div class="flex items-center justify-between bg-yellow-50 border border-yellow-200 p-2.5 rounded-lg">
+                       <div>
+                           <p class="text-xs font-bold text-yellow-800"><i class="fa-solid fa-coins mr-1 text-yellow-600"></i> Poin Anda: <span id="cart-available-points">0</span></p>
+                           <p class="text-[9px] text-yellow-700 mt-0.5" id="cart-points-req">Min. 10.000 Poin untuk ditukar</p>
+                       </div>
+                       <label class="flex items-center space-x-1.5 cursor-pointer bg-white px-2 py-1.5 border border-yellow-200 rounded text-[10px] font-bold text-yellow-800 shadow-sm transition-colors hover:bg-yellow-100">
+                           <input type="checkbox" id="cb-use-points" class="w-3.5 h-3.5 text-yellow-600 focus:ring-yellow-500 rounded border-gray-300" onchange="app.renderSummary()">
+                           <span>Gunakan</span>
+                       </label>
+                   </div>
+               </div>
+               <!-- END FITUR TUKAR POIN -->
            </div>
 
            <div class="border-t border-gray-200 pt-3 mt-4 space-y-2 text-sm font-medium">
@@ -327,6 +343,7 @@
              <div class="flex justify-between text-gray-500"><span>Ongkos Kirim</span><span id="summ-ongkir">Rp 0</span></div>
              <div id="summ-cashback-row" class="flex justify-between text-gray-500 hidden"><span>Diskon / Cashback</span><span id="summ-cashback" class="text-red-500 font-bold">- Rp 0</span></div>
              <div id="summ-manual-voucher-row" class="flex justify-between text-gray-500 hidden"><span>Diskon Voucher Spesial</span><span id="summ-manual-voucher" class="text-blue-600 font-bold">- Rp 0</span></div>
+             <div id="summ-points-row" class="flex justify-between text-gray-500 hidden"><span>Diskon Tukar Poin</span><span id="summ-points" class="text-yellow-600 font-bold">- Rp 0</span></div>
              
              <div class="flex justify-between text-lg font-black text-emerald-600 border-t border-gray-200 pt-2 mt-2"><span>Total Bayar</span><span id="cart-total">Rp 0</span></div>
              <div id="min-order-msg" class="text-[10px] font-bold text-red-500 text-right hidden mt-1">Minimal Pesanan Rp 50.000</div>
@@ -794,7 +811,7 @@
       editingProductId: null, dummyInjected: false, customerData: null, qrisString: '', orders: [],
       buyerLat: null, buyerLng: null, completedOrdersCount: 0,
       customVoucherCode: '', customVoucherAmount: 0, appliedManualVoucherCode: '', appliedManualVoucherAmount: 0, customVoucherUsedBy: [],
-      activePointsAnim: null
+      activePointsAnim: null, appliedPointsDiscount: 0, pointsToDeduct: 0
     };
     window.state = state;
 
@@ -1454,7 +1471,6 @@
                   document.getElementById('summ-ongkir').innerHTML = "<span class='text-red-500 text-[10px] font-bold'>Wajib Klik Deteksi Lokasi</span>";
                   baseOngkir = 0;
               } else {
-                  // Toko Piyungan Est Coords
                   const dist = this.calculateDistance(-7.838500, 110.433100, state.buyerLat, state.buyerLng);
                   distanceLabel = `(${dist.toFixed(1)} km)`;
                   if(dist > 7) { isOutOfRange = true; document.getElementById('summ-ongkir').innerHTML = `<span class='text-red-500 text-[10px] font-bold'>Jarak ${dist.toFixed(1)}km (Maks 7km)</span>`; baseOngkir = 0; } 
@@ -1489,7 +1505,44 @@
               mVRow.classList.remove('hidden'); document.getElementById('summ-manual-voucher').textContent = `- ${ui.formatRupiah(state.appliedManualVoucherAmount)}`;
           } else { mVRow.classList.add('hidden'); }
 
-          let totalAkhir = subtotal + finalOngkir - selectedCashbackDiscount - state.appliedManualVoucherAmount;
+          let totalAkhirSementara = subtotal + finalOngkir - selectedCashbackDiscount - state.appliedManualVoucherAmount;
+          if(totalAkhirSementara < 0) totalAkhirSementara = 0;
+
+          // LOGIKA PENGGUNAAN POIN BELANJA
+          let appliedPointsDiscount = 0;
+          let pointsToDeduct = 0;
+          const cbPoints = document.getElementById('cb-use-points');
+          const pointsContainer = document.getElementById('points-container');
+
+          if(state.customerData && state.customerData.points !== undefined) {
+              pointsContainer.classList.remove('hidden');
+              document.getElementById('cart-available-points').textContent = ui.formatRupiah(state.customerData.points).replace('Rp', '').trim();
+              
+              if(state.customerData.points >= 10000) {
+                  document.getElementById('cart-points-req').textContent = "Poin dapat digunakan untuk memotong tagihan!";
+                  if (cbPoints) cbPoints.disabled = false;
+                  
+                  if (cbPoints && cbPoints.checked) {
+                      pointsToDeduct = Math.min(state.customerData.points, totalAkhirSementara);
+                      appliedPointsDiscount = pointsToDeduct;
+                  }
+              } else {
+                  document.getElementById('cart-points-req').textContent = "Min. 10.000 Poin untuk ditukar";
+                  if (cbPoints) { cbPoints.checked = false; cbPoints.disabled = true; }
+              }
+          } else {
+              pointsContainer.classList.add('hidden');
+          }
+          
+          state.appliedPointsDiscount = appliedPointsDiscount;
+          state.pointsToDeduct = pointsToDeduct;
+
+          const pRow = document.getElementById('summ-points-row');
+          if(appliedPointsDiscount > 0) {
+              pRow.classList.remove('hidden'); document.getElementById('summ-points').textContent = `- ${ui.formatRupiah(appliedPointsDiscount)}`;
+          } else { pRow.classList.add('hidden'); }
+
+          let totalAkhir = totalAkhirSementara - appliedPointsDiscount;
           if(totalAkhir < 0) totalAkhir = 0;
 
           document.getElementById('summ-subtotal').textContent = ui.formatRupiah(subtotal);
@@ -1552,7 +1605,7 @@
             if(!isD) selectedOngkirVal = 0;
             let finalOngkir = isD ? Math.max(0, baseOngkir - selectedOngkirVal) : 0;
             
-            const total = subtotal + finalOngkir - selectedCbVal - state.appliedManualVoucherAmount;
+            const total = subtotal + finalOngkir - selectedCbVal - state.appliedManualVoucherAmount - (state.appliedPointsDiscount || 0);
             const tagihanQRIS = isDP ? Math.floor(total * 0.3) : total;
             const sisaTagihan = isDP ? total - tagihanQRIS : 0;
             
@@ -1562,7 +1615,8 @@
                 items: state.cart, subtotal, ongkir: finalOngkir, total, isDelivery: isD, isDP: isDP, tagihanQRIS, sisaTagihan: sisaTagihan, status: "Belum Bayar",
                 address: isD ? `Desa ${village}, ${ad}` : "Ambil di Toko", mapLink: mapLink || "",
                 diskonOngkir: selectedOngkirVal, diskonCashback: selectedCbVal, baseOngkir: baseOngkir, schedule: schedule, createdAt: Date.now(),
-                diskonManual: state.appliedManualVoucherAmount, kodeVoucherManual: state.appliedManualVoucherCode
+                diskonManual: state.appliedManualVoucherAmount, kodeVoucherManual: state.appliedManualVoucherCode,
+                diskonPoin: state.appliedPointsDiscount || 0, pointsDeducted: state.pointsToDeduct || 0
             };
 
             await setDoc(getDocRef('orders', orderId), orderData);
@@ -1574,6 +1628,15 @@
                 } catch(e) { console.error("Gagal update kuota voucher", e); }
             }
 
+            if (state.pointsToDeduct > 0) {
+                try {
+                    let sisaPoin = state.customerData.points - state.pointsToDeduct;
+                    await setDoc(getProfileRef(state.user.uid), { points: sisaPoin }, { merge: true });
+                    state.customerData.points = sisaPoin;
+                    if(document.getElementById('dash-points')) document.getElementById('dash-points').textContent = sisaPoin;
+                } catch(e) { console.error("Gagal potong poin", e); }
+            }
+
             let itx = state.cart.map((i,x)=>`${x+1}. ${i.name} ${i.selectedVariant?`[${i.selectedVariant}]`:''} (${i.qty}x)`).join('%0A');
             let wa = `Halo Admin Toko! 🛒%0A%0A*No Pesanan:* ${orderId}%0A*Nama:* ${state.customerData.name}%0A*No HP:* ${state.customerData.phone}%0A%0A*🛒 Daftar Pesanan:*%0A${itx}%0A%0A*🚚 Pengiriman:* ${isD ? 'Diantar Kurir' : 'Ambil di Toko'}%0A`;
             if (isD) { wa += `*Area:* Kelurahan ${village}%0A*Detail Alamat:* ${ad}%0A*Jarak Antar:* ${distKm} KM%0A*Titik GPS Maps:* https://www.google.com/maps?q=${state.buyerLat},${state.buyerLng}%0A`; }
@@ -1581,14 +1644,16 @@
             if (isD) { wa += `Ongkir Kurir: ${ui.formatRupiah(baseOngkir)}%0A`; if(selectedOngkirVal > 0) wa += `Diskon Ongkir: -${ui.formatRupiah(selectedOngkirVal)}%0A`; }
             if (selectedCbVal > 0) wa += `Cashback/Diskon: -${ui.formatRupiah(selectedCbVal)}%0A`;
             if (state.appliedManualVoucherAmount > 0) wa += `Diskon Spesial [${state.appliedManualVoucherCode}]: -${ui.formatRupiah(state.appliedManualVoucherAmount)}%0A`;
+            if (state.appliedPointsDiscount > 0) wa += `Diskon Tukar Poin: -${ui.formatRupiah(state.appliedPointsDiscount)}%0A`;
             wa += `%0A*💳 Pembayaran:* ${isDP ? 'Tunai (DP 30%)' : 'Lunas via QRIS'}%0A*Total Keseluruhan:* ${ui.formatRupiah(total)}%0A`;
-            if (isDP) { wa += `*Telah Dibayar (DP):* ${ui.formatRupiah(tagihanQRIS)}%0A*Sisa Kurang Bayar:* ${ui.formatRupiah(sisaTagihan)}%0A`; }
+            if (isDP && total > 0) { wa += `*Telah Dibayar (DP):* ${ui.formatRupiah(tagihanQRIS)}%0A*Sisa Kurang Bayar:* ${ui.formatRupiah(sisaTagihan)}%0A`; }
             wa += `%0A*Status:* Belum Dibayar. Tolong diproses!`;
             
             let p=state.waNumber.replace(/[^0-9]/g,''); window.open(`https://wa.me/${p.startsWith('0')?'62'+p.substring(1):p}?text=${wa}`,'_blank');
 
             state.cart = []; this.updateCartBadge(); 
             this.removeManualVoucher();
+            if(document.getElementById('cb-use-points')) document.getElementById('cb-use-points').checked = false;
             this.toggleCart(); ui.showToast("Pesanan Dibuat! Cek menu Pesanan Saya."); this.fetchMyOrders();
         } catch(e) { ui.showToast("Gagal: " + e.message, "error"); } finally { ui.setBtnLoading('btn-checkout', false, "<i class='fa-solid fa-check-circle text-xl mr-2'></i> Buat Pesanan & Konfirmasi WA"); }
       },
@@ -1636,22 +1701,23 @@
               if(myOrders.length === 0) list.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Belum ada pesanan.</p>`;
               else {
                   list.innerHTML = myOrders.map(o => {
-                      let btnQRIS = o.status === 'Belum Bayar' ? `<button onclick="app.showQRISModal(${o.tagihanQRIS})" class="mt-2 text-[10px] bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded"><i class="fa-solid fa-qrcode"></i> Bayar QRIS</button>` : '';
+                      let btnQRIS = o.status === 'Belum Bayar' && o.total > 0 ? `<button onclick="app.showQRISModal(${o.tagihanQRIS})" class="mt-2 text-[10px] bg-emerald-100 text-emerald-700 font-bold px-3 py-1.5 rounded"><i class="fa-solid fa-qrcode"></i> Bayar QRIS</button>` : '';
                       let statusColor = o.status === 'Belum Bayar' ? 'text-red-600 bg-red-50' : o.status === 'Dibatalkan' ? 'text-gray-500 bg-gray-100' : 'text-blue-600 bg-blue-50';
                       if(o.status === 'Selesai') statusColor = 'text-emerald-600 bg-emerald-50';
                       
                       let itemDetails = o.items.map(i => `• ${i.name} ${i.selectedVariant ? `[${i.selectedVariant}]` : ''} <b>(${i.qty}x)</b>`).join('<br>');
                       let sisaHtml = '';
-                      if (o.isDP) {
+                      if (o.isDP && o.total > 0) {
                           let hitungSisa = o.sisaTagihan !== undefined ? o.sisaTagihan : (o.total - o.tagihanQRIS);
                           if (o.status === 'Selesai') sisaHtml = `<div class="mt-2 text-[10px] text-gray-800 font-bold bg-gray-50 p-1.5 rounded border">Sisa Kurang Bayar ${ui.formatRupiah(hitungSisa)} Lunas</div>`;
                           else sisaHtml = `<div class="mt-2 text-[10px] text-red-600 font-bold bg-red-50 p-1.5 rounded border border-red-100">Sisa Kurang Bayar (Tunai): ${ui.formatRupiah(hitungSisa)}</div>`;
                       }
                       
                       let tanggalPesanStr = new Date(o.createdAt).toLocaleString('id-ID', {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
-                      let jadwalHtml = o.schedule ? `<div class="mt-2 text-[10px] text-purple-700 font-bold bg-purple-50 px-2 py-1 rounded inline-block"><i class="fa-solid fa-clock mr-1"></i> Jadwal: ${o.schedule}</div>` : '';
+                      let jadwalHtml = o.schedule ? `<div class="mt-2 text-[10px] text-purple-700 font-bold bg-purple-50 px-2 py-1 rounded inline-block mb-1"><i class="fa-solid fa-clock mr-1"></i> Jadwal: ${o.schedule}</div>` : '';
+                      let pointHtml = o.diskonPoin > 0 ? `<div class="mt-1 text-[10px] text-yellow-700 font-bold bg-yellow-50 p-1.5 rounded border border-yellow-200 inline-block"><i class="fa-solid fa-coins mr-1"></i> Tukar Poin: -${ui.formatRupiah(o.diskonPoin)}</div>` : '';
 
-                      return `<div class="border rounded-lg p-3 relative"><div class="flex justify-between items-start mb-2"><div><div class="text-xs font-bold">${o.id}</div><div class="text-[9px] text-gray-500 mt-0.5"><i class="fa-solid fa-calendar-days mr-1"></i>Pesan: ${tanggalPesanStr} WIB</div></div><div class="text-[9px] font-bold px-2 py-0.5 rounded ${statusColor}">${o.status}</div></div><div class="text-xs text-gray-600 mb-1 border-b border-gray-100 pb-2">${o.items.length} Produk • Total: <span class="font-bold text-gray-900">${ui.formatRupiah(o.total)}</span></div><div class="text-[10px] text-gray-500 mt-2 leading-relaxed">${itemDetails}</div>${jadwalHtml}${sisaHtml}${btnQRIS}</div>`;
+                      return `<div class="border rounded-lg p-3 relative"><div class="flex justify-between items-start mb-2"><div><div class="text-xs font-bold">${o.id}</div><div class="text-[9px] text-gray-500 mt-0.5"><i class="fa-solid fa-calendar-days mr-1"></i>Pesan: ${tanggalPesanStr} WIB</div></div><div class="text-[9px] font-bold px-2 py-0.5 rounded ${statusColor}">${o.status}</div></div><div class="text-xs text-gray-600 mb-1 border-b border-gray-100 pb-2">${o.items.length} Produk • Total: <span class="font-bold text-gray-900">${ui.formatRupiah(o.total)}</span></div><div class="text-[10px] text-gray-500 mt-2 mb-2 leading-relaxed">${itemDetails}</div>${jadwalHtml}<br>${pointHtml}${sisaHtml}<br>${btnQRIS}</div>`;
                   }).join('');
               }
           } catch(e) {}
@@ -1711,7 +1777,7 @@
                           totalLabaProduk += (i.price - origPrice) * i.qty;
                       });
                       let labaOngkir = o.ongkir || 0;
-                      let labaTotal = totalLabaProduk + labaOngkir - (o.diskonManual || 0);
+                      let labaTotal = totalLabaProduk + labaOngkir - (o.diskonManual || 0) - (o.diskonPoin || 0);
                       weeklyProfit += labaTotal;
                   }
               });
@@ -1751,15 +1817,16 @@
               }).join('');
               
               let hitungSisaAdmin = o.sisaTagihan !== undefined ? o.sisaTagihan : (o.total - o.tagihanQRIS); let sisaTagihanAdmin = '';
-              if (o.isDP) {
+              if (o.isDP && o.total > 0) {
                   if (o.status === 'Selesai') sisaTagihanAdmin = `<div class="text-gray-800 font-bold mt-1">Sisa Kurang Bayar ${ui.formatRupiah(hitungSisaAdmin)} Lunas</div>`;
                   else sisaTagihanAdmin = `<div class="text-red-600 mt-1">Sisa Kurang Bayar (Tunai): ${ui.formatRupiah(hitungSisaAdmin)}</div>`;
               }
               
               let labelJadwal = o.schedule ? `<div class="text-xs text-purple-700 font-bold mt-1 bg-purple-50 px-2 py-1 rounded inline-block"><i class="fa-solid fa-clock"></i> Jadwal: ${o.schedule}</div>` : '';
-              let labaOngkir = o.ongkir || 0; let totalLaba = totalLabaProduk + labaOngkir - (o.diskonManual || 0);
+              let labaOngkir = o.ongkir || 0; let totalLaba = totalLabaProduk + labaOngkir - (o.diskonManual || 0) - (o.diskonPoin || 0);
 
               let diskonManualHtml = o.diskonManual > 0 ? `<div class="mt-2 pt-2 border-t border-gray-100 text-xs text-blue-600 font-bold"><i class="fa-solid fa-tag"></i> Diskon Spesial [${o.kodeVoucherManual}]: -${ui.formatRupiah(o.diskonManual)}</div>` : '';
+              let diskonPoinHtml = o.diskonPoin > 0 ? `<div class="mt-1 pt-1 text-xs text-yellow-600 font-bold"><i class="fa-solid fa-coins"></i> Diskon Tukar Poin: -${ui.formatRupiah(o.diskonPoin)}</div>` : '';
 
               let labaHtml = `
                   <div class="mt-3 bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg text-xs shadow-sm">
@@ -1770,6 +1837,7 @@
                       <div class="flex justify-between text-emerald-700 mb-0.5"><span>Total Laba Produk:</span> <span>${ui.formatRupiah(totalLabaProduk)}</span></div>
                       <div class="flex justify-between text-emerald-700 mb-0.5"><span>Laba Ongkos Kirim:</span> <span>${ui.formatRupiah(labaOngkir)}</span></div>
                       ${o.diskonManual > 0 ? `<div class="flex justify-between text-red-600 mb-0.5 font-bold"><span>Minus Voucher Spesial:</span> <span>-${ui.formatRupiah(o.diskonManual)}</span></div>` : ''}
+                      ${o.diskonPoin > 0 ? `<div class="flex justify-between text-red-600 mb-0.5 font-bold"><span>Minus Tukar Poin:</span> <span>-${ui.formatRupiah(o.diskonPoin)}</span></div>` : ''}
                       <div class="flex justify-between font-black text-emerald-900 border-t border-emerald-200 pt-1.5 mt-1"><span>Total Laba Keseluruhan:</span> <span>${ui.formatRupiah(totalLaba)}</span></div>
                   </div>
               `;
@@ -1792,7 +1860,7 @@
                       <div class="text-xs text-gray-700 mt-1"><i class="fa-solid fa-user text-gray-400"></i> ${o.customerName} (${o.customerPhone})</div>
                       <div class="text-xs text-gray-700"><i class="fa-solid fa-map-marker-alt text-gray-400"></i> ${o.address}</div>
                       ${labelJadwal}
-                      <div class="mt-3 bg-white p-2.5 rounded-lg border border-gray-200 text-xs text-gray-600 shadow-sm"><div class="font-bold text-gray-800 mb-2 border-b pb-1">Rincian Barang & Laba Item:</div><div class="leading-relaxed mt-1">${itemDetails}</div>${diskonManualHtml}</div>
+                      <div class="mt-3 bg-white p-2.5 rounded-lg border border-gray-200 text-xs text-gray-600 shadow-sm"><div class="font-bold text-gray-800 mb-2 border-b pb-1">Rincian Barang & Potongan Harga:</div><div class="leading-relaxed mt-1">${itemDetails}</div>${diskonManualHtml}${diskonPoinHtml}</div>
                       ${labaHtml}
                       <div class="text-xs text-emerald-600 font-bold mt-3 border-t border-gray-200 pt-2">
                           Total Transaksi: ${ui.formatRupiah(o.total)} | Pembayaran: ${o.isDP ? "DP 30%" : "Lunas"}${sisaTagihanAdmin}
@@ -1857,6 +1925,7 @@
           let diskonHtml = ''; if(order.diskonOngkir > 0) diskonHtml += `<div class="flex justify-between py-1 text-sm text-emerald-600"><span class="font-bold">Diskon Ongkir</span><span class="font-bold">-${ui.formatRupiah(order.diskonOngkir)}</span></div>`; 
           if(order.diskonCashback > 0) diskonHtml += `<div class="flex justify-between py-1 text-sm text-emerald-600"><span class="font-bold">Cashback/Diskon</span><span class="font-bold">-${ui.formatRupiah(order.diskonCashback)}</span></div>`;
           if(order.diskonManual > 0) diskonHtml += `<div class="flex justify-between py-1 text-sm text-blue-600"><span class="font-bold">Diskon Spesial [${order.kodeVoucherManual}]</span><span class="font-bold">-${ui.formatRupiah(order.diskonManual)}</span></div>`;
+          if(order.diskonPoin > 0) diskonHtml += `<div class="flex justify-between py-1 text-sm text-yellow-600"><span class="font-bold">Diskon Tukar Poin</span><span class="font-bold">-${ui.formatRupiah(order.diskonPoin)}</span></div>`;
           
           let paymentStatusHtml = '';
           if(order.isDP) {
