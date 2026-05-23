@@ -3,6 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- === META TAG PWA UNTUK APPLE iOS === -->
+  <meta name="theme-color" content="#10b981">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Toko Piyungan">
+  <link rel="apple-touch-icon" href="https://placehold.co/192x192/10b981/ffffff.png?text=TP">
+  
   <title>Toko Online Piyungan</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -72,12 +81,23 @@
   <nav id="navbar-public" class="bg-white shadow-sm sticky top-0 z-40 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
-        <div class="flex items-center cursor-pointer" onclick="app.navigate('home')">
-          <div class="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center mr-3 shadow-md">
-            <i class="fa-solid fa-store text-white text-xl"></i>
-          </div>
-          <span class="font-extrabold text-xl text-gray-900 tracking-tight">Toko<span class="text-emerald-600"> Online Piyungan</span></span>
+        
+        <div class="flex items-center">
+            <!-- LOGO DAN JUDUL -->
+            <div class="flex items-center cursor-pointer" onclick="app.navigate('home')">
+              <div class="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center mr-3 shadow-md">
+                <i class="fa-solid fa-store text-white text-xl"></i>
+              </div>
+              <span class="font-extrabold text-xl text-gray-900 tracking-tight hidden sm:inline-block">Toko<span class="text-emerald-600"> Online Piyungan</span></span>
+              <span class="font-extrabold text-xl text-gray-900 tracking-tight sm:hidden">Toko<span class="text-emerald-600">Piyungan</span></span>
+            </div>
+            
+            <!-- TOMBOL INSTALL PWA DENGAN ANIMASI -->
+            <button id="btn-install-pwa" class="hidden ml-2 sm:ml-3 bg-gradient-to-r from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-md transition-all animate-pulse">
+                <i class="fa-solid fa-download mr-1"></i> Install
+            </button>
         </div>
+
         <div class="flex items-center space-x-2 sm:space-x-4">
           <div class="hidden md:flex items-center gap-2">
             <button onclick="app.openCaraBelanja()" class="flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-full text-xs font-bold transition-colors">
@@ -774,6 +794,61 @@
     </div>
   </div>
 
+  <!-- PWA DYNAMIC SCRIPT (SINGLE FILE) -->
+  <script>
+    (function() {
+        // 1. Dynamic Manifest Creation
+        const manifest = {
+            "name": "Toko Online Piyungan",
+            "short_name": "Toko Piyungan",
+            "description": "Aplikasi PWA Toko Online Piyungan",
+            "start_url": window.location.pathname,
+            "display": "standalone",
+            "background_color": "#ffffff",
+            "theme_color": "#10b981",
+            "icons": [
+                { "src": "https://placehold.co/192x192/10b981/ffffff.png?text=TP", "sizes": "192x192", "type": "image/png" },
+                { "src": "https://placehold.co/512x512/10b981/ffffff.png?text=TP", "sizes": "512x512", "type": "image/png" }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        const manifestLink = document.createElement('link');
+        manifestLink.rel = 'manifest';
+        manifestLink.href = manifestUrl;
+        document.head.appendChild(manifestLink);
+
+        // 2. Dynamic Service Worker Creation (Dihapus untuk mencegah Error)
+        // Browser memblokir pendaftaran Service Worker melalui protokol blob: atau data: karena alasan keamanan.
+        // Oleh karena itu blok registrasi Service Worker dihapus untuk memperbaiki error "URL protocol is not supported".
+
+        // 3. Install Prompt Detection Logic
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Cegah prompt bawaan browser muncul secara otomatis
+            e.preventDefault();
+            deferredPrompt = e;
+            // Tampilkan tombol "Install" buatan kita di navbar
+            const btn = document.getElementById('btn-install-pwa');
+            if(btn) {
+                btn.classList.remove('hidden');
+                btn.addEventListener('click', async () => {
+                    btn.classList.add('hidden'); // Sembunyikan setelah ditekan
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                });
+            }
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            // Sembunyikan tombol setelah aplikasi berhasil diinstal
+            const btn = document.getElementById('btn-install-pwa');
+            if(btn) btn.classList.add('hidden');
+        });
+    })();
+  </script>
+
   <!-- Firebase & App Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1204,7 +1279,9 @@
               const myReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
               const initialUnseen = { personal: 0, affiliate: 0 };
               
+              // Menggunakan ID/Sistem Bawaan Firebase untuk pendaftaran
               let currentUid = auth.currentUser ? auth.currentUser.uid : "anon-" + Date.now();
+              
               const newProfile = { email: e, password: pw, name:n, phone:p, address:a, role:'customer', referralCode: myReferralCode, referredBy: referredByUid, points: 0, unseenPoints: initialUnseen };
               await setDoc(getProfileRef(currentUid), newProfile);
               
