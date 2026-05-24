@@ -10,7 +10,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Toko Piyungan">
-  <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/12zp9aS1_85kAwLynsBelkzcOg8yTvscT">
+  
+  <!-- 1. GANTI URL DI BAWAH INI DENGAN URL LOGO ANDA (Untuk Icon Apple iOS) -->
+  <link rel="apple-touch-icon" href="MASUKKAN_URL_LOGO_ANDA_DISINI.png">
   
   <title>Toko Online Piyungan</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -113,7 +115,8 @@
             <i class="fa-solid fa-user text-xl"></i>
           </button>
           <div id="cust-profile-badge" class="hidden items-center bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full shadow-sm cursor-pointer" onclick="app.openCustomerProfile()">
-            <i class="fa-solid fa-circle-user text-emerald-600 mr-1.5"></i>
+            <i id="nav-badge-icon" class="fa-solid fa-circle-user text-emerald-600 mr-1.5"></i>
+            <img id="nav-badge-img" src="" class="w-5 h-5 rounded-full object-cover mr-1.5 hidden border border-emerald-200">
             <span id="cust-profile-name" class="text-xs font-bold text-emerald-800 max-w-[80px] sm:max-w-[120px] truncate">Akun</span>
           </div>
 
@@ -506,11 +509,20 @@
               </div>
 
               <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 mb-6 flex justify-between items-center">
-                  <div>
-                      <h3 id="dash-name" class="font-bold text-gray-900">Nama</h3>
-                      <p id="dash-email" class="text-xs text-gray-600">email@email.com</p>
-                      <p id="dash-phone" class="text-xs text-gray-600 mt-1"><i class="fa-brands fa-whatsapp text-emerald-500"></i> <span id="dash-phone-val"></span></p>
-                      <p class="text-[10px] text-emerald-700 mt-1 font-bold"><i class="fa-solid fa-medal"></i> Status: <span id="dash-loyalty">0</span>x Selesai</p>
+                  <div class="flex items-center">
+                      <div class="relative w-14 h-14 mr-3 flex-shrink-0">
+                          <img id="dash-avatar-img" src="" class="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm bg-emerald-100">
+                          <label for="avatar-upload" class="absolute -bottom-1 -right-1 bg-white text-emerald-600 border border-gray-200 w-6 h-6 rounded-full flex items-center justify-center cursor-pointer shadow-sm hover:bg-gray-50 transition-colors">
+                              <i class="fa-solid fa-camera text-[10px]"></i>
+                          </label>
+                          <input type="file" id="avatar-upload" accept="image/*" class="hidden" onchange="app.handleAvatarUpload(event)">
+                      </div>
+                      <div>
+                          <h3 id="dash-name" class="font-bold text-gray-900">Nama</h3>
+                          <p id="dash-email" class="text-xs text-gray-600">email@email.com</p>
+                          <p id="dash-phone" class="text-xs text-gray-600 mt-1"><i class="fa-brands fa-whatsapp text-emerald-500"></i> <span id="dash-phone-val"></span></p>
+                          <p class="text-[10px] text-emerald-700 mt-1 font-bold"><i class="fa-solid fa-medal"></i> Status: <span id="dash-loyalty">0</span>x Selesai</p>
+                      </div>
                   </div>
                   <div class="flex flex-col space-y-2">
                       <button onclick="app.doLogout()" class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-red-200 transition"><i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar</button>
@@ -807,8 +819,10 @@
             "background_color": "#ffffff",
             "theme_color": "#10b981",
             "icons": [
-                { "src": "https://lh3.googleusercontent.com/d/12zp9aS1_85kAwLynsBelkzcOg8yTvscT", "sizes": "192x192", "type": "image/png" },
-                { "src": "https://lh3.googleusercontent.com/d/12zp9aS1_85kAwLynsBelkzcOg8yTvscT", "sizes": "512x512", "type": "image/png" }
+                // 2. GANTI URL DI BAWAH INI (Untuk Icon Android/Web ukuran kecil)
+                { "src": "MASUKKAN_URL_LOGO_ANDA_DISINI_UKURAN_192.png", "sizes": "192x192", "type": "image/png" },
+                // 3. GANTI URL DI BAWAH INI (Untuk Icon Android/Web ukuran besar)
+                { "src": "MASUKKAN_URL_LOGO_ANDA_DISINI_UKURAN_512.png", "sizes": "512x512", "type": "image/png" }
             ]
         };
         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
@@ -858,14 +872,8 @@
     // Initialize Immersive Firebase Context
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
         // Fallback dummy config to prevent crashing if viewed locally
-        apiKey: "AIzaSyDWFtj_Ud9c3XSZo2OWPyGwqskFJVV3pxs",
-  authDomain: "jaya-mulya-toko.firebaseapp.com",
-  projectId: "jaya-mulya-toko",
-  storageBucket: "jaya-mulya-toko.firebasestorage.app",
-  messagingSenderId: "632283493920",
-  appId: "1:632283493920:web:9eeabc5095b874d116ae45",
-  measurementId: "G-2479M8TQJD"
-};
+        apiKey: "AIzaSy_dummy", authDomain: "dummy.firebaseapp.com", projectId: "dummy"
+    };
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'toko-piyungan';
     const fbApp = initializeApp(firebaseConfig);
     const auth = getAuth(fbApp);
@@ -886,7 +894,7 @@
       editingProductId: null, dummyInjected: false, customerData: null, qrisString: '', orders: [],
       buyerLat: null, buyerLng: null, completedOrdersCount: 0,
       customVoucherCode: '', customVoucherAmount: 0, appliedManualVoucherCode: '', appliedManualVoucherAmount: 0, customVoucherUsedBy: [],
-      activePointsAnim: null, appliedPointsDiscount: 0, pointsToDeduct: 0
+      activePointsAnim: null, appliedPointsDiscount: 0, pointsToDeduct: 0, adminAvatar: ''
     };
     window.state = state;
 
@@ -952,6 +960,79 @@
               document.getElementById('cust-profile-badge').classList.remove('flex');
               document.getElementById('auth-section').classList.remove('hidden');
               document.getElementById('dashboard-section').classList.add('hidden');
+          }
+      },
+
+      handleAvatarUpload(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              const img = new Image();
+              img.onload = () => {
+                  const canvas = document.createElement('canvas');
+                  const MAX_SIZE = 150;
+                  let width = img.width;
+                  let height = img.height;
+                  if (width > height) {
+                      if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; }
+                  } else {
+                      if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; }
+                  }
+                  canvas.width = width; canvas.height = height;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0, width, height);
+                  const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                  this.saveAvatar(dataUrl);
+              };
+              img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+      },
+
+      async saveAvatar(base64Str) {
+          try {
+              if (state.isAdmin) {
+                  await setDoc(getDocRef('settings', 'app_config'), { adminAvatar: base64Str }, { merge: true });
+                  state.adminAvatar = base64Str;
+              } else if (state.user) {
+                  await setDoc(getProfileRef(state.user.uid), { avatar: base64Str }, { merge: true });
+                  state.customerData.avatar = base64Str;
+              }
+              this.updateAvatarUI();
+              ui.showToast("Foto profil diperbarui!");
+          } catch(e) {
+              ui.showToast("Gagal menyimpan foto profil", "error");
+          }
+      },
+
+      updateAvatarUI() {
+          let avatarUrl = '';
+          let nameForFallback = 'User';
+          if (state.isAdmin) {
+              avatarUrl = state.adminAvatar || '';
+              nameForFallback = 'Admin';
+          } else if (state.customerData) {
+              avatarUrl = state.customerData.avatar || '';
+              nameForFallback = state.customerData.name || 'User';
+          }
+
+          const finalUrl = avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(nameForFallback)}&background=10b981&color=fff`;
+
+          const dashImg = document.getElementById('dash-avatar-img');
+          if (dashImg) dashImg.src = finalUrl;
+
+          const badgeIcon = document.getElementById('nav-badge-icon');
+          const badgeImg = document.getElementById('nav-badge-img');
+          if (badgeIcon && badgeImg) {
+              if (avatarUrl) {
+                  badgeIcon.classList.add('hidden');
+                  badgeImg.classList.remove('hidden');
+                  badgeImg.src = avatarUrl;
+              } else {
+                  badgeIcon.classList.remove('hidden');
+                  badgeImg.classList.add('hidden');
+              }
           }
       },
 
@@ -1031,6 +1112,7 @@
           document.getElementById('cust-profile-name').textContent = state.customerData.name;
           
           this.syncAuthUI();
+          this.updateAvatarUI();
           this.checkPointsNotification();
       },
 
@@ -1043,6 +1125,7 @@
           document.getElementById('cust-profile-name').textContent = "Admin";
           
           this.syncAuthUI();
+          this.updateAvatarUI();
       },
 
       async loadData() {
@@ -1085,6 +1168,7 @@
             state.sliderImages = d.sliders || []; state.qrisString = d.qrisString || "";
             state.customVoucherCode = d.customVoucherCode || ''; state.customVoucherAmount = d.customVoucherAmount || 0;
             state.customVoucherUsedBy = d.customVoucherUsedBy || [];
+            state.adminAvatar = d.adminAvatar || '';
 
             let pData = []; prodSnap.forEach(doc => pData.push({ id: doc.id, ...doc.data() }));
             
