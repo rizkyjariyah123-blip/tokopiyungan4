@@ -151,8 +151,10 @@
     </div>
 
     <!-- Category -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 relative z-10">
-      <div class="bg-white rounded-xl shadow-sm p-3 flex items-center space-x-3 overflow-x-auto hide-scrollbar border border-gray-100" id="category-container"></div>
+    <div class="max-w-7xl mx-auto md:px-4 lg:px-8 mt-2 sm:mt-6 relative z-10">
+      <div class="bg-white md:rounded-2xl shadow-sm pt-5 pb-4 px-2 sm:px-6 border-y md:border border-gray-100">
+        <div class="flex items-start gap-1 sm:gap-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory" id="category-container"></div>
+      </div>
     </div>
 
     <!-- Product Grid -->
@@ -872,7 +874,7 @@
     // Initialize Immersive Firebase Context
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
         // Fallback dummy config to prevent crashing if viewed locally
-        apiKey: "AIzaSyDWFtj_Ud9c3XSZo2OWPyGwqskFJVV3pxs",
+       apiKey: "AIzaSyDWFtj_Ud9c3XSZo2OWPyGwqskFJVV3pxs",
   authDomain: "jaya-mulya-toko.firebaseapp.com",
   projectId: "jaya-mulya-toko",
   storageBucket: "jaya-mulya-toko.firebasestorage.app",
@@ -1455,7 +1457,54 @@
       goToSlide(idx) { state.currentSlideIdx = idx; this.updateSliderUI(); this.startAutoSlide(); },
       startAutoSlide() { clearInterval(state.slideInterval); if(state.sliderImages.length > 1) state.slideInterval = setInterval(() => this.nextSlide(), 4000); },
 
-      renderCategoryPills() { document.getElementById('category-container').innerHTML = state.categories.map(cat => `<button onclick="app.filterCategory('${cat}')" class="whitespace-nowrap px-4 py-2 rounded-lg text-sm font-bold transition-all ${state.selectedCategory===cat ? 'bg-emerald-600 text-white shadow-md':'bg-gray-100 text-gray-600'}">${cat}</button>`).join(''); },
+      renderCategoryPills() { 
+          const colors = [
+              'text-orange-500', 'text-red-500', 'text-blue-500',
+              'text-emerald-500', 'text-purple-500', 'text-pink-500',
+              'text-cyan-500', 'text-amber-500'
+          ];
+
+          const iconMap = {
+              'semua': 'fa-border-all',
+              'sayuran': 'fa-leaf',
+              'sembako': 'fa-basket-shopping',
+              'kue': 'fa-cake-candles',
+              'snack': 'fa-cookie-bite',
+              'minum': 'fa-glass-water',
+              'daging': 'fa-drumstick-bite',
+              'buah': 'fa-apple-whole',
+              'bumbu': 'fa-mortar-pestle'
+          };
+
+          document.getElementById('category-container').innerHTML = state.categories.map((cat, index) => {
+              const isSelected = state.selectedCategory === cat;
+              const iconColor = colors[index % colors.length];
+              const lowerCat = cat.toLowerCase();
+              
+              let iconClass = 'fa-tag'; 
+              for(let key in iconMap) { 
+                  if(lowerCat.includes(key)) { iconClass = iconMap[key]; break; } 
+              }
+              if(lowerCat === 'semua') iconClass = 'fa-border-all';
+
+              const boxClass = isSelected 
+                  ? 'border-emerald-500 ring-2 ring-emerald-100 scale-105 shadow-md bg-white' 
+                  : 'border-gray-100 hover:scale-105 hover:shadow-md shadow-[0_2px_8px_-4px_rgba(0,0,0,0.1)] bg-white';
+              
+              const textClass = isSelected ? 'text-emerald-700 font-bold' : 'text-gray-700 font-medium';
+              const finalIconColor = isSelected ? 'text-emerald-600' : iconColor;
+
+              return `
+              <div onclick="app.filterCategory('${cat}')" class="flex flex-col items-center cursor-pointer shrink-0 snap-center group transition-all duration-300 w-[72px] sm:w-[85px]">
+                  <div class="w-[46px] h-[46px] sm:w-[56px] sm:h-[56px] rounded-[1rem] sm:rounded-[1.2rem] border flex items-center justify-center text-xl sm:text-2xl transition-all duration-300 ${boxClass}">
+                      <i class="fa-solid ${iconClass} ${finalIconColor}"></i>
+                  </div>
+                  <span class="mt-2.5 text-[9px] sm:text-[11px] leading-tight text-center w-full break-words line-clamp-2 px-0.5 transition-colors ${textClass}">${cat}</span>
+              </div>
+              `;
+          }).join(''); 
+      },
+      
       filterCategory(cat) { state.selectedCategory = cat; this.renderCategoryPills(); document.getElementById('katalog-title').innerHTML = cat==='Semua'?'Semua Produk':`<span class="text-emerald-600">${cat}</span>`; this.renderProducts(state.products.filter(p => p.status==='Aktif' && (cat==='Semua' || p.category===cat))); },
       searchProducts(id) { const q = document.getElementById(id).value.toLowerCase(); this.renderProducts(state.products.filter(p => p.status==='Aktif' && (state.selectedCategory==='Semua' || p.category===state.selectedCategory) && (p.name.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)))); },
 
