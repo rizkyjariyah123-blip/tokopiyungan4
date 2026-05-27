@@ -106,6 +106,29 @@
     </div>
   </div>
 
+  <!-- PARTNER DETAIL MODAL -->
+  <div id="partner-detail-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[100000] hidden flex justify-center items-center backdrop-blur-sm p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden relative fade-in flex flex-col max-h-[90vh]">
+      <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
+        <h2 class="text-lg font-bold text-gray-900">Info Partner</h2>
+        <button onclick="app.closePartnerDetail()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors"><i class="fa-solid fa-times"></i></button>
+      </div>
+      <div class="overflow-y-auto flex-1 hide-scrollbar p-6 flex flex-col items-center text-center">
+        <div class="w-32 h-32 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 p-2">
+            <img id="partner-detail-img" src="" class="max-w-full max-h-full object-contain">
+        </div>
+        <h3 id="partner-detail-title" class="text-xl font-black text-gray-900 leading-tight mb-3">Nama Partner</h3>
+        <p id="partner-detail-desc" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap w-full"></p>
+      </div>
+      <div class="p-5 border-t border-gray-100 bg-gray-50 flex flex-col gap-2.5">
+        <button id="partner-detail-btn" class="w-full bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 text-white font-black py-3.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center text-sm uppercase tracking-wide">
+          <i class="fa-solid fa-ticket mr-2 text-lg"></i> Dapatkan Voucher Gratis
+        </button>
+        <button onclick="app.closePartnerDetail()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl transition-colors text-sm">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOP NAVBAR CLEAN & MODERN -->
   <nav id="navbar-public" class="bg-white shadow-sm sticky top-0 z-40 transition-all duration-300 border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
@@ -1486,6 +1509,23 @@
       },
       closeProductDetail() { document.getElementById('product-detail-modal').classList.add('hidden'); },
       
+      openPartnerDetail(id) {
+          const p = state.partners.find(x => x.id === id);
+          if(!p) return;
+          document.getElementById('partner-detail-img').src = p.img || 'https://placehold.co/100x100?text=No+Image';
+          document.getElementById('partner-detail-title').textContent = p.name;
+          document.getElementById('partner-detail-desc').textContent = p.desc || "Tidak ada deskripsi mengenai partner ini.";
+          const btn = document.getElementById('partner-detail-btn');
+          if (p.link) {
+              btn.onclick = () => window.open(p.link, '_blank');
+              btn.classList.remove('hidden');
+          } else {
+              btn.classList.add('hidden');
+          }
+          document.getElementById('partner-detail-modal').classList.remove('hidden');
+      },
+      closePartnerDetail() { document.getElementById('partner-detail-modal').classList.add('hidden'); },
+
       copyReferral() {
           if(!state.customerData || !state.customerData.referralCode) return;
           navigator.clipboard.writeText(state.customerData.referralCode).then(() => ui.showToast("Kode Referral berhasil disalin!")).catch(() => {
@@ -1914,11 +1954,11 @@
           if (section) section.classList.remove('hidden');
 
           container.innerHTML = state.partners.map(p => `
-              <a href="${p.link || '#'}" ${p.link ? 'target="_blank"' : ''} class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
+              <div onclick="app.openPartnerDetail('${p.id}')" class="cursor-pointer bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
                   <img src="${p.img || 'https://placehold.co/100x100?text=No+Image'}" class="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-3 group-hover:scale-110 transition-transform duration-300">
                   <h4 class="text-xs sm:text-sm font-bold text-gray-800 leading-tight">${p.name}</h4>
                   ${p.desc ? `<p class="text-[9px] sm:text-[10px] text-gray-500 mt-1 line-clamp-2">${p.desc}</p>` : ''}
-              </a>
+              </div>
           `).join('');
       },
 
