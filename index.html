@@ -1100,14 +1100,13 @@
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const USER_FIREBASE_CONFIG = {
-        apiKey: "AIzaSyDFQU72rNAo2ni4Fa-5qi9_3Ps3_di6wMQ",
-  authDomain: "toko-2f78f.firebaseapp.com",
-  projectId: "toko-2f78f",
-  storageBucket: "toko-2f78f.firebasestorage.app",
-  messagingSenderId: "648729731728",
-  appId: "1:648729731728:web:3026c6e6aad8edab2cee15",
-  measurementId: "G-67NMCSD868"
-};
+        apiKey: "AIzaSyDWFtj_Ud9c3XSZo2OWPyGwqskFJVV3pxs",
+        authDomain: "jaya-mulya-toko.firebaseapp.com",
+        projectId: "jaya-mulya-toko",
+        storageBucket: "jaya-mulya-toko.firebasestorage.app",
+        messagingSenderId: "632283493920",
+        appId: "1:632283493920:web:9eeabc5095b874d116ae45"
+    };
 
     const firebaseConfig = IS_PREVIEW ? JSON.parse(__firebase_config) : USER_FIREBASE_CONFIG;
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'toko-online-v10';
@@ -1749,14 +1748,14 @@
           // UBAH BAGIAN INI: Ganti link https://placehold.co/... dengan link URL gambar kategori Anda sendiri
           const imageMap = {
               'semua': 'https://placehold.co/100x100/10b981/ffffff?text=Semua',
-              'Sembako': 'https://drive.google.com/file/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30/view?usp=drive_link',
-              'Sabun': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Sabun',
-              'Snak': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Snack',
-              'JajananPasar': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Jajanan Pasar',
-              'Apppremium': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Apppremium',
-              'daging': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Daging',
-              'buah': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Buah',
-              'bumbu': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Bumbu'
+              'sayuran': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30/ffffff?text=Sayur',
+              'sembako': 'https://placehold.co/100x100/10b981/ffffff?text=Sembako',
+              'kue': 'https://placehold.co/100x100/10b981/ffffff?text=Kue',
+              'snack': 'https://placehold.co/100x100/10b981/ffffff?text=Snack',
+              'minum': 'https://placehold.co/100x100/10b981/ffffff?text=Minum',
+              'daging': 'https://placehold.co/100x100/10b981/ffffff?text=Daging',
+              'buah': 'https://placehold.co/100x100/10b981/ffffff?text=Buah',
+              'bumbu': 'https://placehold.co/100x100/10b981/ffffff?text=Bumbu'
           };
 
           document.getElementById('category-container').innerHTML = state.categories.map((cat, index) => {
