@@ -1746,46 +1746,40 @@
       startAutoSlide() { clearInterval(state.slideInterval); if(state.sliderImages.length > 1) state.slideInterval = setInterval(() => this.nextSlide(), 4000); },
 
       renderCategoryPills() { 
-          const colors = [
-              'text-orange-500', 'text-red-500', 'text-blue-500',
-              'text-emerald-500', 'text-purple-500', 'text-pink-500',
-              'text-cyan-500', 'text-amber-500'
-          ];
-
-          const iconMap = {
-              'semua': 'fa-border-all',
-              'sayuran': 'fa-leaf',
-              'sembako': 'fa-basket-shopping',
-              'kue': 'fa-cake-candles',
-              'snack': 'fa-cookie-bite',
-              'minum': 'fa-glass-water',
-              'daging': 'fa-drumstick-bite',
-              'buah': 'fa-apple-whole',
-              'bumbu': 'fa-mortar-pestle'
+          // UBAH BAGIAN INI: Ganti link https://placehold.co/... dengan link URL gambar kategori Anda sendiri
+          const imageMap = {
+              'semua': 'https://placehold.co/100x100/10b981/ffffff?text=Semua',
+              'Sembako': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Sembako',
+              'Sabun': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Sabun',
+              'Snak': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Snack',
+              'JajananPasar': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Jajanan Pasar',
+              'Apppremium': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Apppremium',
+              'daging': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Daging',
+              'buah': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Buah',
+              'bumbu': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30?text=Bumbu'
           };
 
           document.getElementById('category-container').innerHTML = state.categories.map((cat, index) => {
               const isSelected = state.selectedCategory === cat;
-              const iconColor = colors[index % colors.length];
               const lowerCat = cat.toLowerCase();
               
-              let iconClass = 'fa-tag'; 
-              for(let key in iconMap) { 
-                  if(lowerCat.includes(key)) { iconClass = iconMap[key]; break; } 
+              // Mencocokkan nama kategori dengan daftar gambar di imageMap
+              let imgSrc = 'https://placehold.co/100x100/10b981/ffffff?text=Lain'; // Gambar default jika tidak cocok
+              for(let key in imageMap) { 
+                  if(lowerCat.includes(key)) { imgSrc = imageMap[key]; break; } 
               }
-              if(lowerCat === 'semua') iconClass = 'fa-border-all';
+              if(lowerCat === 'semua') imgSrc = imageMap['semua'];
 
               const boxClass = isSelected 
-                  ? 'border-emerald-500 ring-2 ring-emerald-100 scale-105 shadow-md bg-white' 
+                  ? 'border-emerald-500 ring-2 ring-emerald-100 scale-105 shadow-md bg-emerald-50' 
                   : 'border-gray-100 hover:scale-105 hover:shadow-md shadow-[0_2px_8px_-4px_rgba(0,0,0,0.1)] bg-white';
               
               const textClass = isSelected ? 'text-emerald-700 font-bold' : 'text-gray-700 font-medium';
-              const finalIconColor = isSelected ? 'text-emerald-600' : iconColor;
 
               return `
               <div onclick="app.filterCategory('${cat}')" class="flex flex-col items-center cursor-pointer shrink-0 snap-center group transition-all duration-300 w-[72px] sm:w-[85px]">
-                  <div class="w-[46px] h-[46px] sm:w-[56px] sm:h-[56px] rounded-[1rem] sm:rounded-[1.2rem] border flex items-center justify-center text-xl sm:text-2xl transition-all duration-300 ${boxClass}">
-                      <i class="fa-solid ${iconClass} ${finalIconColor}"></i>
+                  <div class="w-[46px] h-[46px] sm:w-[56px] sm:h-[56px] rounded-[1rem] sm:rounded-[1.2rem] border flex items-center justify-center overflow-hidden transition-all duration-300 ${boxClass}">
+                      <img src="${imgSrc}" class="w-7 h-7 sm:w-9 sm:h-9 object-contain transition-transform duration-300 group-hover:scale-110" alt="${cat}">
                   </div>
                   <span class="mt-2.5 text-[9px] sm:text-[11px] leading-tight text-center w-full break-words line-clamp-2 px-0.5 transition-colors ${textClass}">${cat}</span>
               </div>
