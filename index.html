@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Toko Piyungan">
   
   <!-- 1. GANTI URL DI BAWAH INI DENGAN URL LOGO ANDA (Untuk Icon Apple iOS) -->
-  <link rel="apple-touch-icon" href="MASUKKAN_URL_LOGO_ANDA_DISINI.png">
+  <link rel="apple-touch-icon" href="https://placehold.co/192x192/10b981/ffffff?text=Logo">
   
   <title>Toko Online Piyungan</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -81,27 +81,73 @@
   </div>
 
   <!-- PRODUCT DETAIL MODAL -->
-  <div id="product-detail-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[100000] hidden flex justify-center items-center backdrop-blur-sm p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden relative fade-in flex flex-col max-h-[90vh]">
-      <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-white sticky top-0 z-10">
-        <h2 class="text-lg font-bold text-gray-900">Detail Produk</h2>
-        <button onclick="app.closeProductDetail()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-600 transition-colors"><i class="fa-solid fa-times"></i></button>
-      </div>
-      <div class="overflow-y-auto flex-1 hide-scrollbar">
-        <img id="detail-img" src="" class="w-full h-64 sm:h-72 object-cover bg-gray-100">
-        <div class="p-6">
-          <div class="mb-2 text-[10px] font-bold text-emerald-600 tracking-wider uppercase bg-emerald-50 px-2.5 py-1 rounded inline-block" id="detail-category">Kategori</div>
-          <h3 id="detail-title" class="text-2xl font-black text-gray-900 leading-tight mt-1 mb-2">Nama Produk</h3>
-          <p id="detail-price" class="text-2xl font-black text-emerald-600 mb-5 border-b border-gray-100 pb-5">Rp 0</p>
+  <div id="product-detail-modal" class="fixed inset-0 bg-black/60 z-[100000] hidden flex flex-col justify-end sm:justify-center items-center backdrop-blur-sm sm:p-4">
+    <div class="bg-white sm:rounded-3xl shadow-2xl w-full max-w-md h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden relative fade-in flex flex-col rounded-t-3xl">
+      
+      <!-- Tombol Kembali Melayang -->
+      <button onclick="app.closeProductDetail()" class="absolute top-4 left-4 z-20 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md text-gray-600 hover:text-gray-900 transition-colors">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      
+      <!-- Area Scrollable -->
+      <div class="overflow-y-auto flex-1 hide-scrollbar relative bg-white pb-4">
+        
+        <!-- Gambar Utama & Slider -->
+        <div class="relative w-full aspect-square bg-gray-100">
+            <img id="detail-img" src="" class="w-full h-full object-cover transition-all duration-300">
+            <!-- Indikator Titik (Dots) -->
+            <div id="detail-slider-dots" class="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10"></div>
+        </div>
+        
+        <!-- Baris Thumbnail Gambar -->
+        <div id="detail-gallery-thumbnails" class="flex justify-center gap-3 px-4 py-4 overflow-x-auto hide-scrollbar hidden"></div>
+        
+        <!-- Info Produk & Pemilihan Varian -->
+        <div class="px-6 mt-2">
+          <h3 id="detail-title" class="text-2xl font-black text-emerald-600 leading-tight mb-2">Nama Produk</h3>
+          <p id="detail-price" class="text-3xl font-black text-orange-500 mb-6 tracking-tight">Rp 0</p>
           
-          <div>
-            <h4 class="text-sm font-bold text-gray-800 mb-2 flex items-center"><i class="fa-solid fa-list-check text-emerald-500 mr-2"></i>Deskripsi & Spesifikasi Singkat</h4>
-            <p id="detail-desc" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap"></p>
+          <!-- Box Varian 1 (Rasa/Warna) -->
+          <div id="detail-attributes-container" class="mb-5 hidden">
+            <p class="text-[13px] font-bold text-gray-800 mb-2.5">Pilihan Rasa / Warna:</p>
+            <div id="detail-attributes-list" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Box Varian 2 (Ukuran/Berat) -->
+          <div id="detail-variants-container" class="mb-5 hidden">
+            <p class="text-[13px] font-bold text-gray-800 mb-2.5">Pilihan Ukuran:</p>
+            <div id="detail-variants-list" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <!-- Pemilih Jumlah (Qty) -->
+          <div class="mb-6">
+            <p class="text-[13px] font-bold text-gray-800 mb-2.5">Jumlah:</p>
+            <div class="flex items-center border border-gray-300 rounded-lg w-max overflow-hidden shadow-sm">
+              <button onclick="app.changeModalQty(-1)" class="w-11 h-10 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-600 transition-colors font-bold text-lg">-</button>
+              <input type="number" id="detail-qty" value="1" readonly class="w-14 h-10 text-center text-sm font-bold border-x border-gray-300 outline-none bg-white">
+              <button onclick="app.changeModalQty(1)" class="w-11 h-10 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-600 transition-colors font-bold text-lg">+</button>
+            </div>
+          </div>
+
+          <!-- Kotak Spesifikasi -->
+          <div class="bg-blue-50/40 border border-blue-200 rounded-xl p-4 mb-2">
+            <h4 class="text-[13px] font-black text-emerald-600 mb-2">Spesifikasi & Deskripsi:</h4>
+            <div class="flex gap-4">
+              <span class="text-sm font-bold text-gray-700 w-16">Bahan</span>
+              <p id="detail-desc" class="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap flex-1"></p>
+            </div>
           </div>
         </div>
       </div>
-      <div class="p-5 border-t border-gray-100 bg-gray-50">
-        <button onclick="app.closeProductDetail()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all">Tutup Detail</button>
+      
+      <!-- Tombol Aksi Menempel (Sticky Bottom) -->
+      <div class="p-4 border-t border-gray-100 bg-white flex gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-20 shrink-0">
+        <button onclick="app.addToCartFromModal()" class="flex-[3] bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+          <i class="fa-solid fa-cart-plus"></i> Tambahkan
+        </button>
+        <button onclick="app.closeProductDetail()" class="flex-[2] bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all">
+          Tutup
+        </button>
       </div>
     </div>
   </div>
@@ -268,7 +314,7 @@
             <div class="col-span-1">
                 <h3 class="text-blue-900 font-bold text-base mb-4">Jelajahi Toko</h3>
                 <ul class="space-y-2.5 text-xs sm:text-sm text-gray-600">
-                    <li><a href="#" class="hover:text-emerald-600 transition-colors">Tentang Lazada</a></li>
+                    <li><a href="#" class="hover:text-emerald-600 transition-colors">Tentang Kami</a></li>
                     <li><a href="#" class="hover:text-emerald-600 transition-colors">Affiliate Program</a></li>
                     <li><a href="#" class="hover:text-emerald-600 transition-colors">Syarat & Ketentuan</a></li>
                     <li><a href="#" class="hover:text-emerald-600 transition-colors">Kebijakan Privasi</a></li>
@@ -786,7 +832,6 @@
       
       <!-- Admin Tab: Orders -->
       <div id="admin-tab-orders" class="fade-in">
-        <!-- TAMBAHAN: LAPORAN KEUNTUNGAN MINGGUAN (HANYA MUNCUL HARI MINGGU) -->
         <div id="admin-weekly-report" class="hidden mb-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
                 <h4 class="font-bold text-base"><i class="fa-solid fa-calendar-check mr-1.5"></i> Laporan Keuntungan Minggu Ini</h4>
@@ -865,10 +910,24 @@
                   <option value="PAKET HEMAT">PAKET HEMAT</option>
               </select>
             </div>
-            <div class="md:col-span-2">
-              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">URL Gambar Valid</label>
-              <input type="text" id="add-image" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500">
+            
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Gambar Produk (Maks. 3)</label>
+              <div class="flex flex-col gap-2">
+                  <div class="flex gap-2">
+                      <input type="text" id="add-image-url" placeholder="Paste URL ATAU klik Upload 👉" class="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                      <button type="button" onclick="app.addUrlToGallery()" class="bg-gray-800 text-white font-bold px-4 py-2.5 rounded-xl hover:bg-black transition shadow-sm" title="Tambah URL"><i class="fa-solid fa-plus"></i></button>
+                      <label class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-colors cursor-pointer flex items-center">
+                          <i class="fa-solid fa-upload mr-2"></i> Upload File
+                          <input type="file" id="upload-product-images" accept="image/*" multiple class="hidden" onchange="app.handleProductImageUpload(event)">
+                      </label>
+                  </div>
+                  <div id="product-image-preview" class="flex gap-3 overflow-x-auto p-2 border border-dashed border-gray-300 rounded-xl min-h-[80px] items-center bg-white shadow-inner">
+                      <p class="text-xs text-gray-400 w-full text-center">Belum ada gambar (0/3)</p>
+                  </div>
+              </div>
             </div>
+            
             <div class="md:col-span-3">
               <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Variasi Harga Asli / Modal <span class="text-emerald-500">*Secret Admin (Opsional)</span></label>
               <input type="text" id="add-variants-original" placeholder="Contoh: 1 LITER=19000, 10 LITER=180000" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500">
@@ -877,6 +936,11 @@
               <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Variasi Harga Jual / Publik <span class="text-gray-400 font-normal">(Opsional)</span></label>
               <input type="text" id="add-variants" placeholder="Contoh: 1 LITER=20000, 10 LITER=190000" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500">
               <p class="text-[10px] text-gray-500 mt-1">Pisahkan dengan koma. Gunakan sama dengan (=) untuk harga berbeda. Nama varian di Harga Asli dan Harga Jual wajib sama.</p>
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Variasi Rasa / Warna / Ukuran Lain <span class="text-blue-500 font-normal">(Opsional)</span></label>
+              <input type="text" id="add-attributes" placeholder="Contoh: Manis, Sedang, Pedas" class="w-full px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
+              <p class="text-[10px] text-gray-500 mt-1">Pisahkan dengan koma. Ini memunculkan opsi tambahan di luar harga utama.</p>
             </div>
             <div class="md:col-span-3">
               <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Deskripsi & Spesifikasi Singkat</label>
@@ -1035,10 +1099,8 @@
     </div>
   </div>
 
-  <!-- PWA DYNAMIC SCRIPT (SINGLE FILE) -->
   <script>
     (function() {
-        // 1. Dynamic Manifest Creation
         const manifest = {
             "name": "Toko Online Piyungan",
             "short_name": "Toko Piyungan",
@@ -1048,10 +1110,8 @@
             "background_color": "#ffffff",
             "theme_color": "#10b981",
             "icons": [
-                // 2. GANTI URL DI BAWAH INI (Untuk Icon Android/Web ukuran kecil)
-                { "src": "MASUKKAN_URL_LOGO_ANDA_DISINI_UKURAN_192.png", "sizes": "192x192", "type": "image/png" },
-                // 3. GANTI URL DI BAWAH INI (Untuk Icon Android/Web ukuran besar)
-                { "src": "MASUKKAN_URL_LOGO_ANDA_DISINI_UKURAN_512.png", "sizes": "512x512", "type": "image/png" }
+                { "src": "https://placehold.co/192x192/10b981/ffffff?text=Logo", "sizes": "192x192", "type": "image/png" },
+                { "src": "https://placehold.co/512x512/10b981/ffffff?text=Logo", "sizes": "512x512", "type": "image/png" }
             ]
         };
         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
@@ -1061,44 +1121,36 @@
         manifestLink.href = manifestUrl;
         document.head.appendChild(manifestLink);
 
-        // 3. Install Prompt Detection Logic
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Cegah prompt bawaan browser muncul secara otomatis
             e.preventDefault();
             deferredPrompt = e;
-            // Tampilkan tombol "Install" buatan kita di navbar
             const btn = document.getElementById('btn-install-pwa');
             if(btn) {
                 btn.classList.remove('hidden');
                 btn.addEventListener('click', async () => {
-                    btn.classList.add('hidden'); // Sembunyikan setelah ditekan
+                    btn.classList.add('hidden');
                     deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
+                    await deferredPrompt.userChoice;
                     deferredPrompt = null;
                 });
             }
         });
-        
         window.addEventListener('appinstalled', () => {
-            // Sembunyikan tombol setelah aplikasi berhasil diinstal
             const btn = document.getElementById('btn-install-pwa');
             if(btn) btn.classList.add('hidden');
         });
     })();
   </script>
 
-  <!-- Firebase & App Logic -->
   <script type="module">
-    // KONFIGURASI APLIKASI
-    const IS_PREVIEW = typeof __firebase_config !== 'undefined';
-    const GAS_URL = "URL_DEPLOY_GAS_ANDA_DISINI"; 
-
-    // Firebase Setup
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    const IS_PREVIEW = typeof __firebase_config !== 'undefined';
+    
+    // KONFIGURASI FIREBASE ANDA
     const USER_FIREBASE_CONFIG = {
         apiKey: "AIzaSyDFQU72rNAo2ni4Fa-5qi9_3Ps3_di6wMQ",
   authDomain: "toko-2f78f.firebaseapp.com",
@@ -1110,18 +1162,16 @@
 };
 
     const firebaseConfig = IS_PREVIEW ? JSON.parse(__firebase_config) : USER_FIREBASE_CONFIG;
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'toko-online-v10';
-
     const fbApp = initializeApp(firebaseConfig);
     const auth = getAuth(fbApp);
     const db = getFirestore(fbApp);
 
-    const getCol = (name) => IS_PREVIEW ? collection(db, 'artifacts', appId, 'public', 'data', name) : collection(db, name);
+    // KARENA ANDA BERMIGRASI KE SHARED HOSTING, KITA GUNAKAN KOLEKSI ROOT JIKA BUKAN PREVIEW
+    // Fungsi ini juga kompatibel penuh dengan mode Preview Canvas Artifacts
+    const getCol = (name) => IS_PREVIEW ? collection(db, 'artifacts', typeof __app_id !== 'undefined' ? __app_id : 'toko', 'public', 'data', name) : collection(db, name);
     const getDocRef = (colName, docId) => doc(getCol(colName), docId);
-    
-    const getProfileRef = (uid) => IS_PREVIEW ? doc(collection(db, 'artifacts', appId, 'users', uid, 'profile'), 'data') : doc(collection(db, 'users'), uid);
+    const getProfileRef = (uid) => doc(getCol('profiles'), uid);
 
-    // Global State
     const state = {
       products: [], categories: ["Semua"], selectedCategory: "Semua", sliderImages: [], cart: [], waNumber: '',
       isAdmin: false, isCartOpen: false, currentSlideIdx: 0, slideInterval: null, user: null,
@@ -1130,11 +1180,11 @@
       customVoucherCode: '', customVoucherAmount: 0, appliedManualVoucherCode: '', appliedManualVoucherAmount: 0, customVoucherUsedBy: [],
       activePointsAnim: null, appliedPointsDiscount: 0, pointsToDeduct: 0, adminAvatar: '', currentView: 'home',
       expandedSections: { semua: false, promo: false, diskon: false, hemat: false },
-      partners: [], editingPartnerId: null
+      partners: [], editingPartnerId: null, tempProductImages: [],
+      modalData: { product: null, selectedVariantIdx: -1, selectedAttributeIdx: -1, qty: 1, currentImageIdx: 0 }
     };
     window.state = state;
 
-    // QRIS Generator
     const qrisUtils = {
       calculateCRC16: function(str) {
         let crc = 0xFFFF;
@@ -1183,7 +1233,6 @@
           if (isLoggedIn) {
               document.getElementById('auth-section').classList.add('hidden');
               document.getElementById('dashboard-section').classList.remove('hidden');
-              // Tampilkan area checkout & riwayat
               document.getElementById('history-unauth-msg').classList.add('hidden');
               document.getElementById('customer-orders-area').classList.remove('hidden');
               document.getElementById('checkout-auth-warning').classList.add('hidden');
@@ -1191,7 +1240,6 @@
           } else {
               document.getElementById('auth-section').classList.remove('hidden');
               document.getElementById('dashboard-section').classList.add('hidden');
-              // Sembunyikan area checkout & riwayat
               document.getElementById('history-unauth-msg').classList.remove('hidden');
               document.getElementById('customer-orders-area').classList.add('hidden');
               document.getElementById('checkout-auth-warning').classList.remove('hidden');
@@ -1237,9 +1285,7 @@
               }
               this.updateAvatarUI();
               ui.showToast("Foto profil diperbarui!");
-          } catch(e) {
-              ui.showToast("Gagal menyimpan foto profil", "error");
-          }
+          } catch(e) { ui.showToast("Gagal menyimpan foto profil", "error"); }
       },
 
       updateAvatarUI() {
@@ -1252,26 +1298,25 @@
               avatarUrl = state.customerData.avatar || '';
               nameForFallback = state.customerData.name || 'User';
           }
-
           const finalUrl = avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(nameForFallback)}&background=10b981&color=fff`;
-
           const dashImg = document.getElementById('dash-avatar-img');
           if (dashImg) dashImg.src = finalUrl;
       },
 
       async init() {
-        const initAuth = async () => {
-          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-          else { try { await signInAnonymously(auth); } catch(e) {} }
-        };
-        await initAuth();
+        try { 
+            if(IS_PREVIEW && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else if (!auth.currentUser) {
+                await signInAnonymously(auth); 
+            }
+        } catch(e) {}
+        
         this.initFakeBot();
         this.setActiveNav('home');
         
         onAuthStateChanged(auth, async (user) => {
             state.user = user;
-            
-            // Cegah reset UI jika user masih aktif login di memori
             if (state.customerData || state.isAdmin) {
                 this.syncAuthUI();
                 if(!this.isLoaded) { this.isLoaded = true; this.loadData(); }
@@ -1280,7 +1325,7 @@
 
             if (user && !user.isAnonymous) {
                 try {
-                    if (IS_PREVIEW && user.email === 'admin@toko.com') {
+                    if (user.email === 'admin@toko.com') {
                         state.isAdmin = true; state.customerData = null;
                         this.setupAdminUI(user);
                     } else {
@@ -1296,10 +1341,8 @@
                             this.setupAdminUI(user);
                         }
                     }
-
                     if(!state.isAdmin) this.fetchMyOrders();
-
-                } catch(e) { console.error("Auth error", e); }
+                } catch(e) {}
             } else {
                 state.isAdmin = false; state.customerData = null; state.completedOrdersCount = 0;
                 this.syncAuthUI();
@@ -1361,7 +1404,7 @@
             const [confSnap, prodSnap, partSnap] = await Promise.all([
                 getDoc(confRef),
                 getDocs(prodColRef),
-                getDocs(getCol('partners')).catch(() => ({ forEach: () => {} })) // fallback jika koleksi belum ada
+                getDocs(getCol('partners')).catch(() => ({ forEach: () => {} })) 
             ]);
 
             let d = {};
@@ -1378,18 +1421,6 @@
             state.adminAvatar = d.adminAvatar || '';
 
             let pData = []; prodSnap.forEach(doc => pData.push({ id: doc.id, ...doc.data() }));
-            
-            if(pData.length === 0 && !d.dummyInjected) {
-                const d1 = { name: "Paket Nasi Box Hemat", category: "Kue", originalPrice: 15000, price: 20000, desc: "Cocok untuk pengajian. Pemesanan H-3.", img: "https://placehold.co/400x400/e2e8f0/475569?text=Nasi+Box", status: "Aktif", variants: [], createdAt: Date.now() };
-                const d2 = { name: "Sayur Organik Segar", category: "Sayuran", originalPrice: 10000, price: 15000, desc: "Dipetik langsung dari kebun.", img: "https://placehold.co/400x400/e2e8f0/475569?text=Sayur", status: "Aktif", variants: [{name: "1 Ikat", price: 15000, originalPrice: 10000}, {name: "3 Ikat", price: 40000, originalPrice: 30000}], createdAt: Date.now() };
-                await Promise.all([
-                    setDoc(getDocRef('products', 'PRD-1'), d1),
-                    setDoc(getDocRef('products', 'PRD-2'), d2),
-                    setDoc(confRef, { dummyInjected: true }, {merge: true})
-                ]);
-                pData = [{id: 'PRD-1', ...d1}, {id: 'PRD-2', ...d2}];
-            }
-            
             pData.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)); state.products = pData;
 
             let ptData = []; partSnap.forEach(doc => ptData.push({ id: doc.id, ...doc.data() }));
@@ -1415,67 +1446,42 @@
             }
         } catch(e) { 
             console.error("DB Error:", e); 
-            let msg = "Gagal memuat katalog.";
-            if(e.message && e.message.toLowerCase().includes('permission')) {
-                msg = "Akses Firestore Ditolak! Pastikan Rules diset ke TRUE.";
-                document.getElementById('public-empty').classList.remove('hidden');
-                document.getElementById('public-empty').innerHTML = `<div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-lock text-red-400 text-3xl"></i></div><h3 class="text-lg font-bold text-gray-900 mb-1">Database Terkunci</h3><p class="text-red-500 text-sm px-4">Silakan masuk ke Firebase Console > Firestore > Rules. Ubah menjadi:<br><b>allow read, write: if true;</b></p>`;
-            }
-            ui.showToast(msg, "error");
         } finally { ui.toggleLoading('public-loading', false); }
       },
 
-      /* FITUR NAVBAR & TABS (Baru) */
       setActiveNav(tab) {
           ['home', 'history', 'help', 'cart', 'account'].forEach(id => {
               const el = document.getElementById('nav-btn-' + id);
               if (el) {
-                  el.classList.remove('text-emerald-600');
-                  el.classList.add('text-gray-400');
+                  el.classList.remove('text-emerald-600'); el.classList.add('text-gray-400');
                   el.querySelector('span').classList.remove('text-emerald-600', 'font-black');
               }
           });
           const activeEl = document.getElementById('nav-btn-' + tab);
           if (activeEl) {
-              activeEl.classList.add('text-emerald-600');
-              activeEl.classList.remove('text-gray-400');
+              activeEl.classList.add('text-emerald-600'); activeEl.classList.remove('text-gray-400');
               activeEl.querySelector('span').classList.add('text-emerald-600', 'font-black');
           }
       },
 
       navBottom(tab) {
           if (state.isCartOpen && tab !== 'cart') this.toggleCart();
-          
           this.setActiveNav(tab);
-
-          if (tab === 'home') {
-              this.navigate('home');
-          } else if (tab === 'history') {
-              this.navigate('history');
-              this.fetchMyOrders();
-          } else if (tab === 'help') {
-              this.navigate('help');
-          } else if (tab === 'account') {
-              this.navigate('account');
-          } else if (tab === 'cart') {
-              this.toggleCart();
-          }
+          if (tab === 'home') this.navigate('home');
+          else if (tab === 'history') { this.navigate('history'); this.fetchMyOrders(); } 
+          else if (tab === 'help') this.navigate('help');
+          else if (tab === 'account') this.navigate('account');
+          else if (tab === 'cart') this.toggleCart();
       },
 
       navigate(view) {
-        // Hide all views
         ['view-home','view-history','view-help','view-account','view-admin'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('hidden');
+            const el = document.getElementById(id); if (el) el.classList.add('hidden');
         });
-        
         state.currentView = view;
-
-        // Show active view
         const activeView = document.getElementById(`view-${view}`);
         if(activeView) activeView.classList.remove('hidden');
 
-        // Manage extra UI visibility based on roles
         const bottomNav = document.getElementById('bottom-navigation');
         const topNav = document.getElementById('navbar-public');
         
@@ -1491,7 +1497,6 @@
         }
       },
 
-      /* KARENA SEKARANG SUDAH BERBENTUK VIEW/HALAMAN BUKAN MODAL */
       openHelp() { this.navBottom('help'); },
       closeHelp() { this.navBottom('home'); },
       openCustomerProfile() { this.navBottom('account'); },
@@ -1500,15 +1505,140 @@
       openProductDetail(id) {
           const p = state.products.find(x => x.id === id);
           if(!p) return;
-          document.getElementById('detail-img').src = p.img;
-          document.getElementById('detail-category').textContent = p.category;
-          document.getElementById('detail-title').textContent = p.name;
-          document.getElementById('detail-price').textContent = ui.formatRupiah(p.price);
-          document.getElementById('detail-desc').textContent = p.desc || "Tidak ada spesifikasi khusus.";
+          
+          state.modalData = {
+              product: p,
+              selectedVariantIdx: p.variants && p.variants.length > 0 ? 0 : -1,
+              selectedAttributeIdx: p.attributes && p.attributes.length > 0 ? 0 : -1,
+              qty: 1,
+              currentImageIdx: 0
+          };
+          
+          this.renderModal();
           document.getElementById('product-detail-modal').classList.remove('hidden');
       },
       closeProductDetail() { document.getElementById('product-detail-modal').classList.add('hidden'); },
+
+      renderModal() {
+          const m = state.modalData;
+          if(!m.product) return;
+          const p = m.product;
+
+          // Gambar & Slider Titik (Dots)
+          const gallery = p.images && p.images.length > 0 ? p.images : [p.img];
+          const currentImg = gallery[m.currentImageIdx];
+          document.getElementById('detail-img').src = currentImg;
+          
+          const dotsContainer = document.getElementById('detail-slider-dots');
+          if (gallery.length > 1) {
+              dotsContainer.innerHTML = gallery.map((_, i) => `<div class="w-2.5 h-2.5 rounded-full ${i === m.currentImageIdx ? 'bg-emerald-500' : 'bg-gray-300'} transition-colors"></div>`).join('');
+          } else {
+              dotsContainer.innerHTML = '';
+          }
+
+          // Thumbnail List
+          const thumbContainer = document.getElementById('detail-gallery-thumbnails');
+          if (gallery.length > 1) {
+              thumbContainer.innerHTML = gallery.map((src, i) => `
+                  <div onclick="app.setModalImage(${i})" class="w-[60px] h-[60px] rounded-lg border-[2.5px] ${i === m.currentImageIdx ? 'border-emerald-500' : 'border-transparent'} overflow-hidden cursor-pointer shrink-0 transition-all hover:border-emerald-300">
+                      <img src="${src}" class="w-full h-full object-cover">
+                  </div>
+              `).join('');
+              thumbContainer.classList.remove('hidden');
+          } else {
+              thumbContainer.innerHTML = '';
+              thumbContainer.classList.add('hidden');
+          }
+
+          // Text & Harga Utama
+          document.getElementById('detail-title').textContent = p.name;
+          let currentPrice = p.price;
+          if (m.selectedVariantIdx > -1 && p.variants[m.selectedVariantIdx]) {
+              currentPrice = p.variants[m.selectedVariantIdx].price;
+          }
+          document.getElementById('detail-price').textContent = ui.formatRupiah(currentPrice);
+          document.getElementById('detail-desc').textContent = p.desc || "-";
+
+          // Tombol Pilihan Rasa (Attributes)
+          const attrContainer = document.getElementById('detail-attributes-container');
+          const attrList = document.getElementById('detail-attributes-list');
+          if (p.attributes && p.attributes.length > 0) {
+              attrList.innerHTML = p.attributes.map((attr, i) => `
+                  <button onclick="app.setModalAttribute(${i})" class="px-3.5 py-2 border ${i === m.selectedAttributeIdx ? 'border-emerald-500 bg-emerald-500 text-white shadow-sm' : 'border-gray-300 bg-white text-gray-700 hover:border-emerald-300'} rounded-lg text-sm transition-all outline-none">
+                      ${attr}
+                  </button>
+              `).join('');
+              attrContainer.classList.remove('hidden');
+          } else {
+              attrContainer.classList.add('hidden');
+          }
+
+          // Tombol Pilihan Ukuran (Variants)
+          const varContainer = document.getElementById('detail-variants-container');
+          const varList = document.getElementById('detail-variants-list');
+          if (p.variants && p.variants.length > 0) {
+              varList.innerHTML = p.variants.map((v, i) => `
+                  <button onclick="app.setModalVariant(${i})" class="px-3.5 py-2 border ${i === m.selectedVariantIdx ? 'border-emerald-500 bg-emerald-500 text-white shadow-sm' : 'border-gray-300 bg-white text-gray-700 hover:border-emerald-300'} rounded-lg text-sm transition-all outline-none">
+                      ${v.name}
+                  </button>
+              `).join('');
+              varContainer.classList.remove('hidden');
+          } else {
+              varContainer.classList.add('hidden');
+          }
+
+          document.getElementById('detail-qty').value = m.qty;
+      },
       
+      setModalImage(idx) { state.modalData.currentImageIdx = idx; this.renderModal(); },
+      setModalAttribute(idx) { state.modalData.selectedAttributeIdx = idx; this.renderModal(); },
+      setModalVariant(idx) { state.modalData.selectedVariantIdx = idx; this.renderModal(); },
+      
+      changeModalQty(delta) {
+          let newQty = state.modalData.qty + delta;
+          if(newQty < 1) newQty = 1;
+          state.modalData.qty = newQty;
+          document.getElementById('detail-qty').value = newQty;
+      },
+
+      addToCartFromModal() {
+          const m = state.modalData;
+          if(!m.product) return;
+          const p = m.product;
+
+          let selectedVariantName = ""; 
+          let itemPrice = p.price; 
+          let itemOriginalPrice = p.originalPrice || 0;
+
+          if (p.variants && p.variants.length > 0) {
+              if(m.selectedVariantIdx === -1) return ui.showToast("Pilih variasi ukuran produk!", "error");
+              const v = p.variants[m.selectedVariantIdx];
+              selectedVariantName = v.name;
+              itemPrice = Number(v.price);
+              itemOriginalPrice = Number(v.originalPrice !== undefined ? v.originalPrice : p.originalPrice);
+          }
+
+          let selectedAttribute = "";
+          if (p.attributes && p.attributes.length > 0) {
+              if(m.selectedAttributeIdx === -1) return ui.showToast("Pilih variasi Rasa/Warna!", "error");
+              selectedAttribute = p.attributes[m.selectedAttributeIdx];
+          }
+
+          const cartItemId = `${p.id}|${selectedVariantName}|${selectedAttribute}`;
+          const existing = state.cart.find(i => i.cartItemId === cartItemId); 
+          
+          if(existing) {
+              existing.qty += m.qty; 
+          } else {
+              state.cart.push({ ...p, price: itemPrice, originalPrice: itemOriginalPrice, qty: m.qty, cartItemId, selectedVariant: selectedVariantName, selectedAttribute: selectedAttribute });
+          }
+          
+          ui.showToast("Berhasil dimasukkan ke keranjang!"); 
+          this.updateCartBadge(); 
+          if(state.isCartOpen) this.renderCart(); 
+          this.closeProductDetail();
+      },
+
       openPartnerDetail(id) {
           const p = state.partners.find(x => x.id === id);
           if(!p) return;
@@ -1536,21 +1666,14 @@
       checkPointsNotification() {
           if (!state.customerData || state.isAdmin) return;
           let unseen = state.customerData.unseenPoints || { personal: 0, affiliate: 0 };
-          if (unseen.personal > 0) {
-              this.showPointsModal('personal', unseen.personal);
-              return; 
-          }
-          if (unseen.affiliate > 0) {
-              this.showPointsModal('affiliate', unseen.affiliate);
-              return;
-          }
+          if (unseen.personal > 0) { this.showPointsModal('personal', unseen.personal); return; }
+          if (unseen.affiliate > 0) { this.showPointsModal('affiliate', unseen.affiliate); return; }
       },
 
       showPointsModal(type, amount) {
           const modal = document.getElementById('points-animation-modal');
           const msg1 = document.getElementById('points-anim-msg1');
           const msg2 = document.getElementById('points-anim-msg2');
-
           if (type === 'personal') {
               msg1.textContent = `+${amount} Poin`;
               msg2.innerHTML = `Pesanan Anda telah selesai.<br>Ayo belanja lagi di Toko Online Piyungan agar poinmu semakin bertambah banyak!`;
@@ -1569,13 +1692,8 @@
           if (state.customerData && state.user) {
               let pRef = getProfileRef(state.user.uid);
               let unseen = state.customerData.unseenPoints || { personal: 0, affiliate: 0 };
-
-              if (state.activePointsAnim === 'personal') {
-                  unseen.personal = 0;
-              } else if (state.activePointsAnim === 'affiliate') {
-                  unseen.affiliate = 0;
-              }
-
+              if (state.activePointsAnim === 'personal') unseen.personal = 0;
+              else if (state.activePointsAnim === 'affiliate') unseen.affiliate = 0;
               state.customerData.unseenPoints = unseen;
               try { await setDoc(pRef, { unseenPoints: unseen }, { merge: true }); } catch(e){}
               setTimeout(() => this.checkPointsNotification(), 500);
@@ -1683,9 +1801,7 @@
                   ui.showToast("Login Admin Berhasil!"); 
                   this.navigate('admin'); 
                   return ui.setBtnLoading('btn-do-login', false, "Masuk Sekarang"); 
-              } catch(er) {
-                  console.error("Admin Login Error: ", er);
-              }
+              } catch(er) { console.error("Admin Login Error: ", er); }
           }
           
           try { 
@@ -1706,9 +1822,7 @@
                   
                   ui.showToast("Login Berhasil!"); 
                   this.fetchMyOrders();
-              } else {
-                  throw new Error("Email atau password salah.");
-              }
+              } else { throw new Error("Email atau password salah."); }
           } catch(err) { 
               ui.showToast(err.message, "error"); 
           } finally { ui.setBtnLoading('btn-do-login', false, "Masuk Sekarang"); }
@@ -1717,12 +1831,7 @@
       async doLogout() { 
           state.customerData = null;
           state.isAdmin = false;
-          
-          try { 
-              await signOut(auth); 
-              await signInAnonymously(auth); 
-          } catch(e) {}
-          
+          try { await signOut(auth); await signInAnonymously(auth); } catch(e) {}
           state.user = auth.currentUser;
           this.syncAuthUI();
           ui.showToast("Logged Out"); 
@@ -1746,7 +1855,6 @@
       startAutoSlide() { clearInterval(state.slideInterval); if(state.sliderImages.length > 1) state.slideInterval = setInterval(() => this.nextSlide(), 4000); },
 
       renderCategoryPills() { 
-          // UBAH BAGIAN INI: Ganti link https://placehold.co/... dengan link URL gambar kategori Anda sendiri
           const imageMap = {
               'semua': 'https://lh3.googleusercontent.com/d/1pT30Dg7zh0Iv3n-x2XptQNklwyaTKbHP',
               'sembako': 'https://lh3.googleusercontent.com/d/1HF-Y1XkKvefjpvIRZf3sZkgTGiVXYr30',
@@ -1761,12 +1869,8 @@
           document.getElementById('category-container').innerHTML = state.categories.map((cat, index) => {
               const isSelected = state.selectedCategory === cat;
               const lowerCat = cat.toLowerCase();
-              
-              // Mencocokkan nama kategori dengan daftar gambar di imageMap
-              let imgSrc = 'https://placehold.co/100x100/10b981/ffffff?text=Lain'; // Gambar default jika tidak cocok
-              for(let key in imageMap) { 
-                  if(lowerCat.includes(key)) { imgSrc = imageMap[key]; break; } 
-              }
+              let imgSrc = 'https://placehold.co/100x100/10b981/ffffff?text=Lain';
+              for(let key in imageMap) { if(lowerCat.includes(key)) { imgSrc = imageMap[key]; break; } }
               if(lowerCat === 'semua') imgSrc = imageMap['semua'];
 
               const boxClass = isSelected 
@@ -1789,16 +1893,14 @@
       filterCategory(cat) { 
           state.selectedCategory = cat; 
           this.renderCategoryPills(); 
-          
           const q = document.getElementById('searchInput').value.toLowerCase();
           const isDefaultView = cat === 'Semua' && !q;
 
           document.getElementById('katalog-title').innerHTML = isDefaultView ? '' : (cat === 'Semua' ? (q ? 'Hasil Pencarian' : 'Semua Produk') : `<span class="text-emerald-600">${cat}</span>`);
           document.getElementById('katalog-title-container').classList[isDefaultView ? 'add' : 'remove']('hidden');
 
-          if (isDefaultView) {
-              this.renderHomeSections();
-          } else {
+          if (isDefaultView) this.renderHomeSections();
+          else {
               let filtered = state.products.filter(p => p.status === 'Aktif');
               if (cat !== 'Semua') filtered = filtered.filter(p => p.category === cat);
               if (q) filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || (p.desc||'').toLowerCase().includes(q));
@@ -1813,9 +1915,8 @@
           document.getElementById('katalog-title').innerHTML = isDefaultView ? '' : (state.selectedCategory === 'Semua' ? (q ? 'Hasil Pencarian' : 'Semua Produk') : `<span class="text-emerald-600">${state.selectedCategory}</span>`);
           document.getElementById('katalog-title-container').classList[isDefaultView ? 'add' : 'remove']('hidden');
 
-          if (isDefaultView) {
-              this.renderHomeSections();
-          } else {
+          if (isDefaultView) this.renderHomeSections();
+          else {
               let filtered = state.products.filter(p => p.status === 'Aktif');
               if (state.selectedCategory !== 'Semua') filtered = filtered.filter(p => p.category === state.selectedCategory);
               if (q) filtered = filtered.filter(p => p.name.toLowerCase().includes(q) || (p.desc||'').toLowerCase().includes(q));
@@ -1829,12 +1930,18 @@
       },
 
       generateProductCardHTML(p) {
-        let variantHTML = `<div class="h-[30px] mt-1 mb-2"></div>`;
+        let variantHTML = `<div class="h-[10px] mt-1 mb-2"></div>`;
         let badgeHTML = '';
         if (p.variants && p.variants.length > 0) {
-          badgeHTML = `<div class="absolute top-2 right-2 z-10"><span class="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">Varian Tersedia</span></div>`;
+          badgeHTML = `<div class="absolute top-2 right-2 z-10"><span class="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">Multi Varian</span></div>`;
           const optionsHTML = p.variants.map((v, i) => `<option value="${i}" data-price="${v.price}" data-original-price="${v.originalPrice !== undefined ? v.originalPrice : (p.originalPrice || 0)}">${v.name}</option>`).join('');
-          variantHTML = `<div class="mt-1 mb-2"><select id="var-${p.id}" onchange="app.changeVariantPrice('${p.id}')" class="variant-select w-full bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"><option value="" disabled selected>Pilih Variasi</option>${optionsHTML}</select></div>`;
+          variantHTML = `<div class="mt-1 mb-2"><select id="var-${p.id}" onchange="app.changeVariantPrice('${p.id}')" class="variant-select w-full bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"><option value="" disabled selected>Pilih Variasi Harga</option>${optionsHTML}</select></div>`;
+        }
+        
+        let attrHTML = '';
+        if (p.attributes && p.attributes.length > 0) {
+            const attrOptions = p.attributes.map((a, i) => `<option value="${i}">${a}</option>`).join('');
+            attrHTML = `<div class="mb-2"><select id="attr-${p.id}" class="variant-select w-full bg-blue-50 border border-blue-200 text-blue-800 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 font-bold"><option value="" disabled selected>Pilih Rasa/Warna</option>${attrOptions}</select></div>`;
         }
         
         let labelHTML = '';
@@ -1847,7 +1954,7 @@
             btnCart = `<button disabled class="bg-gray-300 text-gray-500 w-8 h-8 sm:w-9 sm:h-9 rounded-xl shadow-none cursor-not-allowed flex items-center justify-center shrink-0 mb-0.5"><i class="fa-solid fa-times"></i></button>`;
         }
 
-        return `<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all flex flex-col group relative"><div class="absolute top-2 left-2 z-10"><span class="bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] font-black px-2 py-1 rounded shadow-sm">${p.category}</span></div>${badgeHTML}<img src="${p.img}" onclick="app.openProductDetail('${p.id}')" class="w-full h-48 object-cover bg-gray-100 group-hover:scale-105 transition-transform cursor-pointer" title="Klik untuk lihat detail"><div class="p-3 sm:p-4 flex flex-col flex-grow"><h3 class="text-sm font-bold text-gray-900 leading-tight line-clamp-2 cursor-pointer hover:text-emerald-600 mb-1" onclick="app.openProductDetail('${p.id}')">${p.name}</h3>${variantHTML}<div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-end"><div class="flex flex-col">${labelHTML}<span id="price-${p.id}" class="font-black text-emerald-600 text-sm sm:text-base">${ui.formatRupiah(p.price)}</span></div>${btnCart}</div></div></div>`;
+        return `<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all flex flex-col group relative"><div class="absolute top-2 left-2 z-10"><span class="bg-white/90 backdrop-blur-sm text-gray-800 text-[10px] font-black px-2 py-1 rounded shadow-sm">${p.category}</span></div>${badgeHTML}<img src="${p.img}" onclick="app.openProductDetail('${p.id}')" class="w-full h-48 object-cover bg-gray-100 group-hover:scale-105 transition-transform cursor-pointer" title="Klik untuk lihat detail"><div class="p-3 sm:p-4 flex flex-col flex-grow"><h3 class="text-sm font-bold text-gray-900 leading-tight line-clamp-2 cursor-pointer hover:text-emerald-600 mb-1" onclick="app.openProductDetail('${p.id}')">${p.name}</h3>${variantHTML}${attrHTML}<div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-end"><div class="flex flex-col">${labelHTML}<span id="price-${p.id}" class="font-black text-emerald-600 text-sm sm:text-base">${ui.formatRupiah(p.price)}</span></div>${btnCart}</div></div></div>`;
       },
 
       renderSimpleGrid(items) {
@@ -1864,7 +1971,6 @@
 
       buildSectionHTML(title, items, sectionId, defaultLimit) {
         if (!items || items.length === 0) return '';
-        
         if (state.expandedSections[sectionId] === undefined) state.expandedSections[sectionId] = false;
         
         const isExpanded = state.expandedSections[sectionId];
@@ -1907,34 +2013,15 @@
         }
 
         let html = '';
-        
-        // 1. Semua Produk (1 row) -> Limit 5
         html += this.buildSectionHTML('Semua Produk', activeProducts, 'semua', 5);
-        
-        // 2. Harga Promo
-        const promoProducts = activeProducts.filter(p => p.label === 'Harga Promo');
-        html += this.buildSectionHTML('HARGA PROMO', promoProducts, 'promo', 10);
-        
-        // 3. DISKON EXTRA
-        const diskonProducts = activeProducts.filter(p => p.label === 'DISKON EXTRA');
-        html += this.buildSectionHTML('DISKON EXTRA', diskonProducts, 'diskon', 10);
-        
-        // 4. PAKET HEMAT
-        const hematProducts = activeProducts.filter(p => p.label === 'PAKET HEMAT');
-        html += this.buildSectionHTML('PAKET HEMAT', hematProducts, 'hemat', 10);
-        
+        html += this.buildSectionHTML('HARGA PROMO', activeProducts.filter(p => p.label === 'Harga Promo'), 'promo', 10);
+        html += this.buildSectionHTML('DISKON EXTRA', activeProducts.filter(p => p.label === 'DISKON EXTRA'), 'diskon', 10);
+        html += this.buildSectionHTML('PAKET HEMAT', activeProducts.filter(p => p.label === 'PAKET HEMAT'), 'hemat', 10);
         container.innerHTML = html;
       },
 
-      expandSection(sectionId) {
-          state.expandedSections[sectionId] = true;
-          this.renderHomeSections();
-      },
-
-      collapseSection(sectionId) {
-          state.expandedSections[sectionId] = false;
-          this.renderHomeSections();
-      },
+      expandSection(sectionId) { state.expandedSections[sectionId] = true; this.renderHomeSections(); },
+      collapseSection(sectionId) { state.expandedSections[sectionId] = false; this.renderHomeSections(); },
 
       renderPartners() {
           const container = document.getElementById('partner-grid');
@@ -1958,15 +2045,12 @@
       initScheduleDropdown() {
           const dateSelect = document.getElementById('buyer-schedule-date');
           if(!dateSelect) return;
-          
           const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
           dateSelect.innerHTML = '';
-          
           for (let i = 0; i < 7; i++) {
               let d = new Date(); d.setDate(d.getDate() + i);
               let label = i === 0 ? "Hari Ini" : i === 1 ? "Besok" : i === 2 ? "Lusa" : days[d.getDay()];
               let dateStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
-              
               let opt = document.createElement('option');
               opt.value = `${label} (${dateStr})`; opt.dataset.index = i; opt.textContent = `${label} (${dateStr})`;
               dateSelect.appendChild(opt);
@@ -2000,26 +2084,35 @@
               this.initScheduleDropdown(); this.renderCart();
           }else{
               s.classList.add('translate-x-full'); setTimeout(()=>o.classList.add('hidden'),300);
-              this.setActiveNav(state.currentView || 'home'); // Revert to active tab
+              this.setActiveNav(state.currentView || 'home');
           } 
       },
       
       addToCart(id) { 
         const p = state.products.find(x => x.id === id); if(!p) return; 
+        
         let selectedVariantName = ""; let itemPrice = p.price; let itemOriginalPrice = p.originalPrice || 0;
         if (p.variants && p.variants.length > 0) {
             const selectEl = document.getElementById(`var-${id}`); const selVal = selectEl.value;
-            if(!selVal) return ui.showToast("Pilih variasi produk!", "error");
+            if(!selVal) return ui.showToast("Pilih variasi produk (Harga)!", "error");
             const opt = selectEl.options[selectEl.selectedIndex];
             selectedVariantName = opt.text;
             itemPrice = Number(opt.getAttribute('data-price'));
             itemOriginalPrice = Number(opt.getAttribute('data-original-price'));
         }
-        const cartItemId = selectedVariantName ? `${id}|${selectedVariantName}` : id;
+
+        let selectedAttribute = "";
+        if (p.attributes && p.attributes.length > 0) {
+            const attrEl = document.getElementById(`attr-${id}`);
+            if(!attrEl.value) return ui.showToast("Pilih variasi Rasa/Warna!", "error");
+            selectedAttribute = attrEl.options[attrEl.selectedIndex].text;
+        }
+
+        const cartItemId = `${id}|${selectedVariantName}|${selectedAttribute}`;
         const existing = state.cart.find(i => i.cartItemId === cartItemId); 
         
         if(existing) existing.qty += 1; 
-        else state.cart.push({ ...p, price: itemPrice, originalPrice: itemOriginalPrice, qty: 1, cartItemId, selectedVariant: selectedVariantName });
+        else state.cart.push({ ...p, price: itemPrice, originalPrice: itemOriginalPrice, qty: 1, cartItemId, selectedVariant: selectedVariantName, selectedAttribute: selectedAttribute });
         
         ui.showToast("Masuk keranjang!"); this.updateCartBadge(); if(state.isCartOpen) this.renderCart(); 
       },
@@ -2078,12 +2171,8 @@
           if (!state.customVoucherCode || state.customVoucherAmount <= 0) return ui.showToast("Kode voucher salah atau sudah tidak aktif", "error");
           
           if (input === state.customVoucherCode.toUpperCase()) {
-              if (state.customVoucherUsedBy.includes(state.user.uid)) {
-                  return ui.showToast("Anda sudah pernah menggunakan voucher ini", "error");
-              }
-              if (state.customVoucherUsedBy.length >= 5) {
-                  return ui.showToast("Kuota voucher ini sudah habis (Maks 5 orang)", "error");
-              }
+              if (state.customVoucherUsedBy.includes(state.user.uid)) return ui.showToast("Anda sudah pernah menggunakan voucher ini", "error");
+              if (state.customVoucherUsedBy.length >= 5) return ui.showToast("Kuota voucher ini sudah habis (Maks 5 orang)", "error");
 
               state.appliedManualVoucherCode = state.customVoucherCode;
               state.appliedManualVoucherAmount = state.customVoucherAmount;
@@ -2157,7 +2246,6 @@
           let totalAkhirSementara = subtotal + finalOngkir - selectedCashbackDiscount - state.appliedManualVoucherAmount;
           if(totalAkhirSementara < 0) totalAkhirSementara = 0;
 
-          // LOGIKA PENGGUNAAN POIN BELANJA
           let appliedPointsDiscount = 0;
           let pointsToDeduct = 0;
           const cbPoints = document.getElementById('cb-use-points');
@@ -2223,7 +2311,13 @@
         const c = document.getElementById('cart-items'), f = document.getElementById('checkout-form'), b = document.getElementById('btn-checkout');
         if(!state.cart.length) { c.innerHTML=`<div class="text-center py-10 text-gray-400"><i class="fa-solid fa-basket-shopping text-4xl mb-2"></i><p>Keranjang Kosong</p></div>`; document.getElementById('cart-total').textContent="Rp 0"; f.classList.add('hidden'); b.disabled=true; return; }
         f.classList.remove('hidden'); b.disabled=false;
-        c.innerHTML = state.cart.map(i => `<div class="flex bg-white p-3 rounded-xl shadow-sm border border-gray-100 relative"><img src="${i.img}" class="w-14 h-14 object-cover rounded-lg"><div class="flex-1 ml-3"><h4 class="text-xs font-bold line-clamp-1 pr-6">${i.name} ${i.selectedVariant?`[${i.selectedVariant}]`:''}</h4><p class="text-xs font-black text-emerald-600">${ui.formatRupiah(i.price)}</p><div class="flex items-center mt-2 bg-gray-100 rounded w-max"><button onclick="app.updateQty('${i.cartItemId}',-1)" class="w-6 h-6 hover:bg-gray-200">-</button><span class="w-6 text-center text-xs font-bold">${i.qty}</span><button onclick="app.updateQty('${i.cartItemId}',1)" class="w-6 h-6 hover:bg-gray-200">+</button></div></div><button onclick="app.updateQty('${i.cartItemId}',-999)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></div>`).join('');
+        c.innerHTML = state.cart.map(i => {
+            let variantDetails = [];
+            if(i.selectedVariant) variantDetails.push(i.selectedVariant);
+            if(i.selectedAttribute) variantDetails.push(i.selectedAttribute);
+            const variantText = variantDetails.length > 0 ? `[${variantDetails.join(', ')}]` : '';
+            return `<div class="flex bg-white p-3 rounded-xl shadow-sm border border-gray-100 relative"><img src="${i.img}" class="w-14 h-14 object-cover rounded-lg"><div class="flex-1 ml-3"><h4 class="text-xs font-bold line-clamp-1 pr-6">${i.name} ${variantText ? `<span class="text-[10px] text-blue-600 font-bold block">${variantText}</span>` : ''}</h4><p class="text-xs font-black text-emerald-600">${ui.formatRupiah(i.price)}</p><div class="flex items-center mt-2 bg-gray-100 rounded w-max"><button onclick="app.updateQty('${i.cartItemId}',-1)" class="w-6 h-6 hover:bg-gray-200">-</button><span class="w-6 text-center text-xs font-bold">${i.qty}</span><button onclick="app.updateQty('${i.cartItemId}',1)" class="w-6 h-6 hover:bg-gray-200">+</button></div></div><button onclick="app.updateQty('${i.cartItemId}',-999)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></div>`;
+        }).join('');
         this.renderSummary();
       },
 
@@ -2283,10 +2377,14 @@
                     await setDoc(getProfileRef(state.user.uid), { points: sisaPoin }, { merge: true });
                     state.customerData.points = sisaPoin;
                     if(document.getElementById('dash-points')) document.getElementById('dash-points').textContent = sisaPoin;
-                } catch(e) { console.error("Gagal potong poin", e); }
+                } catch(e) {}
             }
 
-            let itx = state.cart.map((i,x)=>`${x+1}. ${i.name} ${i.selectedVariant?`[${i.selectedVariant}]`:''} (${i.qty}x)`).join('%0A');
+            let itx = state.cart.map((i,x)=> {
+                let v = []; if(i.selectedVariant) v.push(i.selectedVariant); if(i.selectedAttribute) v.push(i.selectedAttribute);
+                return `${x+1}. ${i.name} ${v.length>0 ? `[${v.join(', ')}]` : ''} (${i.qty}x)`;
+            }).join('%0A');
+            
             let wa = `Halo Admin Toko! 🛒%0A%0A*No Pesanan:* ${orderId}%0A*Nama:* ${state.customerData.name}%0A*No HP:* ${state.customerData.phone}%0A%0A*🛒 Daftar Pesanan:*%0A${itx}%0A%0A*🚚 Pengiriman:* ${isD ? 'Diantar Kurir' : 'Ambil di Toko'}%0A`;
             if (isD) { wa += `*Area:* Kelurahan ${village}%0A*Detail Alamat:* ${ad}%0A*Jarak Antar:* ${distKm} KM%0A*Titik GPS Maps:* https://www.google.com/maps?q=${state.buyerLat},${state.buyerLng}%0A`; }
             wa += `*Jadwal Pilihan:* ${schedule}%0A*Catatan:* ${notes || '-'}%0A%0A*Rincian Tagihan:*%0ATotal Produk: ${ui.formatRupiah(subtotal)}%0A`;
@@ -2330,12 +2428,10 @@
                   }
                   
                   if (o.autoHidden) continue;
-
                   if(o.userId === state.user.uid) myOrders.push(o); 
               }
 
               myOrders.sort((a,b) => b.createdAt - a.createdAt);
-              
               if (myOrders.length > 11) {
                   const ordersToDelete = myOrders.slice(11); 
                   for (let order of ordersToDelete) { try { await deleteDoc(getDocRef('orders', order.id)); } catch(e) {} }
@@ -2354,7 +2450,11 @@
                       let statusColor = o.status === 'Belum Bayar' ? 'text-red-600 bg-red-50' : o.status === 'Dibatalkan' ? 'text-gray-500 bg-gray-100' : 'text-blue-600 bg-blue-50';
                       if(o.status === 'Selesai') statusColor = 'text-emerald-600 bg-emerald-50';
                       
-                      let itemDetails = o.items.map(i => `• ${i.name} ${i.selectedVariant ? `[${i.selectedVariant}]` : ''} <b>(${i.qty}x)</b>`).join('<br>');
+                      let itemDetails = o.items.map(i => {
+                          let v = []; if(i.selectedVariant) v.push(i.selectedVariant); if(i.selectedAttribute) v.push(i.selectedAttribute);
+                          return `• ${i.name} ${v.length>0 ? `[${v.join(', ')}]` : ''} <b>(${i.qty}x)</b>`;
+                      }).join('<br>');
+                      
                       let sisaHtml = '';
                       if (o.isDP && o.total > 0) {
                           let hitungSisa = o.sisaTagihan !== undefined ? o.sisaTagihan : (o.total - o.tagihanQRIS);
@@ -2406,18 +2506,13 @@
 
               for (const d of qSnap.docs) {
                   let o = {id: d.id, ...d.data()};
-                  
-                  if (now - o.createdAt > DUA_BULAN_MS) {
-                      try { await deleteDoc(getDocRef('orders', o.id)); } catch(e){}
-                      continue;
-                  }
+                  if (now - o.createdAt > DUA_BULAN_MS) { try { await deleteDoc(getDocRef('orders', o.id)); } catch(e){} continue; }
 
                   const isExpiredUnpaidOrCanceled = (o.status === 'Belum Bayar' || o.status === 'Dibatalkan') && (now - o.createdAt > EMPATPULUHDELAPAN_JAM_MS);
                   if (isExpiredUnpaidOrCanceled && !o.autoHidden) {
                       o.autoHidden = true;
                       try { await setDoc(getDocRef('orders', o.id), { autoHidden: true }, {merge: true}); } catch(e){}
                   }
-
                   allOrders.push(o);
               }
               
@@ -2426,12 +2521,8 @@
               this.filterAdminOrders();
               this.calculateWeeklyProfit(allOrders); 
               ui.showToast("Data pesanan berhasil diperbarui!");
-          } catch(e) {
-              console.error(e);
-              ui.showToast("Gagal memuat pesanan", "error");
-          } finally {
-              ui.setBtnLoading('btn-refresh-orders', false, '<i class="fa-solid fa-sync-alt mr-1"></i> Refresh');
-          }
+          } catch(e) { ui.showToast("Gagal memuat pesanan", "error"); } 
+          finally { ui.setBtnLoading('btn-refresh-orders', false, '<i class="fa-solid fa-sync-alt mr-1"></i> Refresh'); }
       },
 
       calculateWeeklyProfit(orders) {
@@ -2444,7 +2535,6 @@
               startOfWeek.setHours(0,0,0,0);
               
               let weeklyProfit = 0;
-              
               orders.forEach(o => {
                   if (o.status === 'Selesai' && o.createdAt >= startOfWeek.getTime()) {
                       let totalLabaProduk = 0;
@@ -2460,20 +2550,13 @@
               
               document.getElementById('weekly-profit-total').textContent = ui.formatRupiah(weeklyProfit);
               reportEl.classList.remove('hidden');
-          } else {
-              reportEl.classList.add('hidden');
-          }
+          } else { reportEl.classList.add('hidden'); }
       },
 
       deleteOrderPermanently(id) {
           ui.showConfirm("Hapus pesanan ini secara permanen dari database?", async () => {
-              try {
-                  await deleteDoc(getDocRef('orders', id));
-                  ui.showToast("Pesanan dihapus permanen.");
-                  this.fetchAdminOrders();
-              } catch(e) {
-                  ui.showToast("Gagal menghapus pesanan", "error");
-              }
+              try { await deleteDoc(getDocRef('orders', id)); ui.showToast("Pesanan dihapus permanen."); this.fetchAdminOrders(); } 
+              catch(e) { ui.showToast("Gagal menghapus pesanan", "error"); }
           });
       },
 
@@ -2493,9 +2576,10 @@
           list.innerHTML = filteredData.map(o => {
               let totalLabaProduk = 0;
               let itemDetails = o.items.map(i => {
+                  let v = []; if(i.selectedVariant) v.push(i.selectedVariant); if(i.selectedAttribute) v.push(i.selectedAttribute);
                   let origPrice = i.originalPrice; if (origPrice === undefined) origPrice = (state.products.find(x => x.id === i.id)?.originalPrice || 0);
                   let labaItem = (i.price - origPrice) * i.qty; totalLabaProduk += labaItem;
-                  return `<div class="mb-1.5">- ${i.name} ${i.selectedVariant ? `[${i.selectedVariant}]` : ''} <span class="font-bold text-gray-900">(${i.qty}x)</span><br><span class="text-[10px] text-gray-500 ml-2 block border-l-2 border-gray-200 pl-1 py-0.5">Jual: ${ui.formatRupiah(i.price)} | Asli: ${ui.formatRupiah(origPrice)} | Laba: <span class="text-emerald-600 font-bold">${ui.formatRupiah(labaItem)}</span></span></div>`;
+                  return `<div class="mb-1.5">- ${i.name} ${v.length>0 ? `[${v.join(', ')}]` : ''} <span class="font-bold text-gray-900">(${i.qty}x)</span><br><span class="text-[10px] text-gray-500 ml-2 block border-l-2 border-gray-200 pl-1 py-0.5">Jual: ${ui.formatRupiah(i.price)} | Asli: ${ui.formatRupiah(origPrice)} | Laba: <span class="text-emerald-600 font-bold">${ui.formatRupiah(labaItem)}</span></span></div>`;
               }).join('');
               
               let hitungSisaAdmin = o.sisaTagihan !== undefined ? o.sisaTagihan : (o.total - o.tagihanQRIS); let sisaTagihanAdmin = '';
@@ -2603,7 +2687,11 @@
           const order = state.orders.find(o => o.id === orderId); if(!order) return ui.showToast("Pesanan tidak ditemukan", "error");
           const printWindow = window.open('', '_blank'); if(!printWindow) return ui.showToast("Izinkan Pop-up untuk mencetak!", "error");
 
-          const itemsHtml = order.items.map((i, idx) => `<tr class="border-b"><td class="py-3 px-2 text-sm">${idx + 1}</td><td class="py-3 px-2 text-sm font-bold">${i.name} ${i.selectedVariant ? `<span class="text-xs text-gray-500 font-normal">(${i.selectedVariant})</span>` : ''}</td><td class="py-3 px-2 text-sm text-center">${i.qty}</td><td class="py-3 px-2 text-sm text-right">${ui.formatRupiah(i.price)}</td><td class="py-3 px-2 text-sm text-right font-bold">${ui.formatRupiah(i.price * i.qty)}</td></tr>`).join('');
+          const itemsHtml = order.items.map((i, idx) => {
+              let v = []; if(i.selectedVariant) v.push(i.selectedVariant); if(i.selectedAttribute) v.push(i.selectedAttribute);
+              return `<tr class="border-b"><td class="py-3 px-2 text-sm">${idx + 1}</td><td class="py-3 px-2 text-sm font-bold">${i.name} ${v.length>0 ? `<span class="text-xs text-gray-500 font-normal">(${v.join(', ')})</span>` : ''}</td><td class="py-3 px-2 text-sm text-center">${i.qty}</td><td class="py-3 px-2 text-sm text-right">${ui.formatRupiah(i.price)}</td><td class="py-3 px-2 text-sm text-right font-bold">${ui.formatRupiah(i.price * i.qty)}</td></tr>`;
+          }).join('');
+          
           let diskonHtml = ''; if(order.diskonOngkir > 0) diskonHtml += `<div class="flex justify-between py-1 text-sm text-emerald-600"><span class="font-bold">Diskon Ongkir</span><span class="font-bold">-${ui.formatRupiah(order.diskonOngkir)}</span></div>`; 
           if(order.diskonCashback > 0) diskonHtml += `<div class="flex justify-between py-1 text-sm text-emerald-600"><span class="font-bold">Cashback/Diskon</span><span class="font-bold">-${ui.formatRupiah(order.diskonCashback)}</span></div>`;
           if(order.diskonManual > 0) diskonHtml += `<div class="flex justify-between py-1 text-sm text-blue-600"><span class="font-bold">Diskon Spesial [${order.kodeVoucherManual}]</span><span class="font-bold">-${ui.formatRupiah(order.diskonManual)}</span></div>`;
@@ -2642,40 +2730,32 @@
               state.products = pData;
               this.renderAdminProducts();
               this.filterCategory(state.selectedCategory); 
-              
               ui.showToast("Data produk berhasil diperbarui!");
-          } catch(e) {
-              console.error(e);
-              ui.showToast("Gagal memuat produk", "error");
-          } finally {
-              ui.setBtnLoading('btn-refresh-products', false, '<i class="fa-solid fa-sync-alt mr-1"></i> Refresh');
-          }
+          } catch(e) { ui.showToast("Gagal memuat produk", "error"); } 
+          finally { ui.setBtnLoading('btn-refresh-products', false, '<i class="fa-solid fa-sync-alt mr-1"></i> Refresh'); }
       },
 
       renderAdminProducts() { 
           document.getElementById('admin-product-list').innerHTML=state.products.map(p=>{
               let originalPrice = p.originalPrice || 0; let laba = p.price - originalPrice;
-              
-              let origHtml = ui.formatRupiah(originalPrice);
-              let priceHtml = ui.formatRupiah(p.price);
-              let labaHtml = ui.formatRupiah(laba);
+              let origHtml = ui.formatRupiah(originalPrice); let priceHtml = ui.formatRupiah(p.price); let labaHtml = ui.formatRupiah(laba);
 
               if (p.variants && p.variants.length > 0) {
                   origHtml = `<div class="mb-1">${ui.formatRupiah(originalPrice)} <span class="text-[9px] text-gray-400 font-normal">(Dasar)</span></div>`;
                   priceHtml = `<div class="mb-1">${ui.formatRupiah(p.price)} <span class="text-[9px] text-gray-400 font-normal">(Dasar)</span></div>`;
                   labaHtml = `<div class="mb-1">${ui.formatRupiah(laba)} <span class="text-[9px] text-gray-400 font-normal">(Dasar)</span></div>`;
-                  
                   p.variants.forEach(v => {
-                      let vOrig = v.originalPrice !== undefined ? v.originalPrice : originalPrice;
-                      let vLaba = v.price - vOrig;
+                      let vOrig = v.originalPrice !== undefined ? v.originalPrice : originalPrice; let vLaba = v.price - vOrig;
                       origHtml += `<div class="text-[10px] text-gray-500 mt-1 whitespace-nowrap">${v.name}: ${ui.formatRupiah(vOrig)}</div>`;
                       priceHtml += `<div class="text-[10px] text-gray-600 mt-1 whitespace-nowrap">${v.name}: <span class="font-bold text-gray-800">${ui.formatRupiah(v.price)}</span></div>`;
                       labaHtml += `<div class="text-[10px] text-emerald-600 mt-1 whitespace-nowrap">${v.name}: <span class="font-bold">${ui.formatRupiah(vLaba)}</span></div>`;
                   });
               }
 
+              let attrHtml = p.attributes && p.attributes.length > 0 ? `<div class="text-[9px] text-blue-500 mt-0.5 bg-blue-50 px-1 py-0.5 rounded inline-block max-w-[120px] truncate">Varian: ${p.attributes.join(', ')}</div>` : '';
+
               return `<tr class="hover:bg-gray-50 border-b border-gray-50">
-                  <td class="px-6 py-4 align-top"><div class="flex items-start"><img class="h-10 w-10 rounded-lg border object-cover mr-3 mt-1" src="${p.img}"><div class="text-sm font-bold text-gray-800 mt-1">${p.name}<div class="text-[10px] text-emerald-600 mt-0.5">${p.category}</div></div></div></td>
+                  <td class="px-6 py-4 align-top"><div class="flex items-start"><img class="h-10 w-10 rounded-lg border object-cover mr-3 mt-1" src="${p.img}"><div class="text-sm font-bold text-gray-800 mt-1">${p.name}<div class="text-[10px] text-emerald-600 mt-0.5">${p.category}</div>${attrHtml}</div></div></td>
                   <td class="px-6 py-4 text-sm text-gray-500 align-top">${origHtml}</td>
                   <td class="px-6 py-4 text-sm font-black text-gray-700 align-top">${priceHtml}</td>
                   <td class="px-6 py-4 text-sm font-bold text-emerald-600 align-top">${labaHtml}</td>
@@ -2683,6 +2763,78 @@
                   <td class="px-6 py-4 text-right whitespace-nowrap align-top"><button onclick="app.editProduct('${p.id}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors mr-1"><i class="fa-solid fa-pen"></i></button><button onclick="app.deleteProduct('${p.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"><i class="fa-solid fa-trash"></i></button></td>
               </tr>`;
           }).join(''); 
+      },
+
+      renderPreviewImages() {
+          const container = document.getElementById('product-image-preview');
+          if(state.tempProductImages.length === 0) {
+              container.innerHTML = '<p class="text-xs text-gray-400 w-full text-center py-2">Belum ada gambar (Max 3)</p>';
+              return;
+          }
+          container.innerHTML = state.tempProductImages.map((src, i) => `
+              <div class="relative w-16 h-16 rounded-lg border border-gray-200 overflow-hidden shrink-0 group shadow-sm">
+                  <img src="${src}" class="w-full h-full object-cover">
+                  <button type="button" onclick="app.removePreviewImage(${i})" class="absolute top-1 right-1 bg-red-500 text-white w-5 h-5 flex items-center justify-center text-[10px] rounded-full opacity-90 hover:opacity-100 hover:scale-110 transition-transform"><i class="fa-solid fa-times"></i></button>
+              </div>
+          `).join('');
+      },
+
+      addUrlToGallery() {
+          const input = document.getElementById('add-image-url');
+          const val = input.value.trim();
+          if(!val) return;
+          if(state.tempProductImages.length >= 3) return ui.showToast("Maksimal 3 gambar!", "error");
+          state.tempProductImages.push(val);
+          input.value = '';
+          this.renderPreviewImages();
+      },
+
+      removePreviewImage(i) {
+          state.tempProductImages.splice(i, 1);
+          this.renderPreviewImages();
+          document.getElementById('upload-product-images').value = '';
+      },
+
+      handleProductImageUpload(e) {
+          const files = Array.from(e.target.files);
+          if(!files.length) return;
+          
+          let remainingSlots = 3 - state.tempProductImages.length;
+          if(remainingSlots <= 0) return ui.showToast("Maksimal 3 gambar!", "error");
+          
+          ui.setBtnLoading('btn-add-product', true, "Memproses Gambar...");
+          
+          const processFile = (file) => {
+              return new Promise((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = (event) => {
+                      const img = new Image();
+                      img.onload = () => {
+                          const canvas = document.createElement('canvas');
+                          const MAX_SIZE = 800;
+                          let width = img.width; let height = img.height;
+                          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                          else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                          canvas.width = width; canvas.height = height;
+                          const ctx = canvas.getContext('2d');
+                          ctx.drawImage(img, 0, 0, width, height);
+                          resolve(canvas.toDataURL('image/jpeg', 0.8));
+                      };
+                      img.src = event.target.result;
+                  };
+                  reader.readAsDataURL(file);
+              });
+          };
+
+          const processMultiple = async () => {
+              for(let i = 0; i < Math.min(files.length, remainingSlots); i++) {
+                  const b64 = await processFile(files[i]);
+                  state.tempProductImages.push(b64);
+              }
+              this.renderPreviewImages();
+              ui.setBtnLoading('btn-add-product', false, state.editingProductId ? "Simpan Perubahan" : "Simpan Produk");
+          };
+          processMultiple();
       },
 
       editProduct(id) {
@@ -2694,8 +2846,12 @@
           document.getElementById('add-original-price').value = p.originalPrice || ''; 
           document.getElementById('add-price').value = p.price || ''; 
           document.getElementById('add-label').value = p.label || ''; 
-          document.getElementById('add-image').value = p.img || ''; 
           document.getElementById('add-desc').value = p.desc || '';
+          
+          state.tempProductImages = p.images && p.images.length > 0 ? [...p.images] : (p.img ? [p.img] : []);
+          this.renderPreviewImages();
+          
+          document.getElementById('add-attributes').value = p.attributes ? p.attributes.join(', ') : '';
           
           if(p.variants && p.variants.length > 0) {
               document.getElementById('add-variants').value = p.variants.map(v => v.price !== undefined && v.price !== p.price ? `${v.name}=${v.price}` : v.name).join(', ');
@@ -2708,40 +2864,52 @@
       },
 
       cancelEdit() { 
-          state.editingProductId = null; document.getElementById('form-product-title').textContent = "Tambah Produk"; document.getElementById('btn-add-product-text').textContent = "Simpan Produk"; document.getElementById('btn-cancel-edit').classList.add('hidden'); 
-          ['add-name','add-original-price','add-price','add-image','add-desc','add-variants', 'add-variants-original', 'add-label'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; }); 
+          state.editingProductId = null; 
+          document.getElementById('form-product-title').textContent = "Tambah Produk"; 
+          document.getElementById('btn-add-product-text').textContent = "Simpan Produk"; 
+          document.getElementById('btn-cancel-edit').classList.add('hidden'); 
+          
+          state.tempProductImages = [];
+          this.renderPreviewImages();
+          
+          ['add-name','add-original-price','add-price','add-desc','add-variants', 'add-variants-original', 'add-label', 'add-attributes', 'add-image-url'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; }); 
       },
 
       async submitNewProduct() {
-        const n = document.getElementById('add-name').value, c = document.getElementById('add-category').value, op = document.getElementById('add-original-price').value, p = document.getElementById('add-price').value, i = document.getElementById('add-image').value, d = document.getElementById('add-desc').value;
+        const n = document.getElementById('add-name').value, c = document.getElementById('add-category').value, op = document.getElementById('add-original-price').value, p = document.getElementById('add-price').value, d = document.getElementById('add-desc').value;
         const vInputOrig = document.getElementById('add-variants-original').value;
         const vInput = document.getElementById('add-variants').value;
         const l = document.getElementById('add-label').value;
+        const attrInput = document.getElementById('add-attributes').value;
         
         if(!n||!p||!op) return ui.showToast("Nama, Harga Asli Dasar, dan Jual Dasar Wajib!","error");
+        if(state.tempProductImages.length === 0) return ui.showToast("Minimal wajib memasukkan 1 gambar!", "error");
+        
         ui.setBtnLoading('btn-add-product',true);
         
         try {
             let origMap = {};
             if (vInputOrig.trim()) {
-                vInputOrig.split(',').forEach(v => {
-                    let parts = v.split('=');
-                    if (parts.length > 1) origMap[parts[0].trim()] = Number(parts[1].trim());
-                });
+                vInputOrig.split(',').forEach(v => { let parts = v.split('='); if (parts.length > 1) origMap[parts[0].trim()] = Number(parts[1].trim()); });
             }
 
             let variants = []; 
             if(vInput.trim()) {
                 variants = vInput.split(',').map(v => { 
-                    let parts = v.split('='); 
-                    let vName = parts[0].trim();
-                    let vPrice = parts.length > 1 ? Number(parts[1].trim()) : Number(p); 
-                    let vOrig = origMap[vName] !== undefined ? origMap[vName] : Number(op);
+                    let parts = v.split('='); let vName = parts[0].trim(); let vPrice = parts.length > 1 ? Number(parts[1].trim()) : Number(p); let vOrig = origMap[vName] !== undefined ? origMap[vName] : Number(op);
                     return { name: vName, price: vPrice, originalPrice: vOrig }; 
                 }); 
             }
+            
+            let attributes = [];
+            if(attrInput.trim()) { attributes = attrInput.split(',').map(a => a.trim()).filter(a => a); }
 
-            const payload = { name:n, category:c, originalPrice:Number(op), price:Number(p), img:i, desc:d, variants, status:"Aktif", label:l, updatedAt: Date.now() };
+            const payload = { 
+                name:n, category:c, originalPrice:Number(op), price:Number(p), 
+                img: state.tempProductImages[0], images: state.tempProductImages, 
+                desc:d, variants, status:"Aktif", label:l, attributes, updatedAt: Date.now() 
+            };
+
             if (state.editingProductId) await setDoc(getDocRef('products', state.editingProductId), payload, {merge:true}); 
             else { payload.createdAt = Date.now(); await setDoc(getDocRef('products', "PRD-" + Date.now().toString().slice(-6)), payload); }
             
@@ -2764,14 +2932,9 @@
               state.partners = ptData;
               this.renderAdminPartners();
               this.renderPartners();
-              
               ui.showToast("Data partner berhasil diperbarui!");
-          } catch(e) {
-              console.error(e);
-              ui.showToast("Gagal memuat partner", "error");
-          } finally {
-              ui.setBtnLoading('btn-refresh-partners', false, '<i class="fa-solid fa-sync-alt mr-1"></i> Refresh');
-          }
+          } catch(e) { ui.showToast("Gagal memuat partner", "error"); } 
+          finally { ui.setBtnLoading('btn-refresh-partners', false, '<i class="fa-solid fa-sync-alt mr-1"></i> Refresh'); }
       },
 
       renderAdminPartners() {
@@ -2810,7 +2973,6 @@
           document.getElementById('add-partner-image').value = p.img || ''; 
           document.getElementById('add-partner-link').value = p.link || ''; 
           document.getElementById('add-partner-desc').value = p.desc || '';
-          
           window.scrollTo({ top: 0, behavior: 'smooth' });
       },
 
@@ -2823,45 +2985,20 @@
       },
 
       async submitNewPartner() {
-          const n = document.getElementById('add-partner-name').value, 
-                i = document.getElementById('add-partner-image').value, 
-                l = document.getElementById('add-partner-link').value, 
-                d = document.getElementById('add-partner-desc').value;
-          
+          const n = document.getElementById('add-partner-name').value, i = document.getElementById('add-partner-image').value, l = document.getElementById('add-partner-link').value, d = document.getElementById('add-partner-desc').value;
           if(!n || !i) return ui.showToast("Nama dan Gambar/Logo Wajib diisi!", "error");
           ui.setBtnLoading('btn-add-partner', true);
           
           try {
               const payload = { name: n, img: i, link: l, desc: d, updatedAt: Date.now() };
-              
-              if (state.editingPartnerId) {
-                  await setDoc(getDocRef('partners', state.editingPartnerId), payload, {merge:true});
-              } else {
-                  payload.createdAt = Date.now();
-                  await setDoc(getDocRef('partners', "PTR-" + Date.now().toString().slice(-6)), payload);
-              }
-              
-              ui.showToast("Partner Berhasil Disimpan!");
-              this.cancelEditPartner();
-              this.refreshAdminPartners();
-          } catch(e) {
-              ui.showToast(`Gagal: ${e.message}`, "error");
-          } finally {
-              ui.setBtnLoading('btn-add-partner', false, state.editingPartnerId ? 'Simpan Perubahan' : 'Simpan Partner');
-          }
+              if (state.editingPartnerId) await setDoc(getDocRef('partners', state.editingPartnerId), payload, {merge:true});
+              else { payload.createdAt = Date.now(); await setDoc(getDocRef('partners', "PTR-" + Date.now().toString().slice(-6)), payload); }
+              ui.showToast("Partner Berhasil Disimpan!"); this.cancelEditPartner(); this.refreshAdminPartners();
+          } catch(e) { ui.showToast(`Gagal: ${e.message}`, "error"); } 
+          finally { ui.setBtnLoading('btn-add-partner', false, state.editingPartnerId ? 'Simpan Perubahan' : 'Simpan Partner'); }
       },
 
-      deletePartner(id) {
-          ui.showConfirm("Hapus partner ini?", async () => { 
-              try { 
-                  await deleteDoc(getDocRef('partners', id)); 
-                  ui.showToast("Partner dihapus."); 
-                  this.refreshAdminPartners(); 
-              } catch(e) {
-                  ui.showToast("Gagal menghapus", "error");
-              } 
-          });
-      },
+      deletePartner(id) { ui.showConfirm("Hapus partner ini?", async () => { try { await deleteDoc(getDocRef('partners', id)); ui.showToast("Partner dihapus."); this.refreshAdminPartners(); } catch(e) { ui.showToast("Gagal menghapus", "error"); } }); },
 
       renderAdminSliders() { document.getElementById('admin-slider-list').innerHTML = state.sliderImages.length ? state.sliderImages.map((u, i) => `<div class="relative rounded-lg border overflow-hidden group aspect-w-3 aspect-h-1"><img src="${u}" class="object-cover w-full h-24"><button onclick="app.removeSliderImage(${i})" class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded"><i class="fa-solid fa-times text-xs"></i></button></div>`).join('') : '<p class="text-xs text-gray-500">Belum ada slide.</p>'; },
       addSliderImage() { const v = document.getElementById('add-slider-url').value.trim(); if(v){ state.sliderImages.push(v); document.getElementById('add-slider-url').value=''; this.renderAdminSliders(); } },
@@ -2876,14 +3013,8 @@
             if(type === 'voucher') { 
                 const newCode = document.getElementById('setting-voucher-code').value.trim().toUpperCase(); 
                 const newAmount = Number(document.getElementById('setting-voucher-amount').value) || 0; 
-                
-                if (newCode !== state.customVoucherCode) {
-                    payload.customVoucherUsedBy = [];
-                    state.customVoucherUsedBy = [];
-                }
-                
-                payload.customVoucherCode = newCode;
-                payload.customVoucherAmount = newAmount;
+                if (newCode !== state.customVoucherCode) { payload.customVoucherUsedBy = []; state.customVoucherUsedBy = []; }
+                payload.customVoucherCode = newCode; payload.customVoucherAmount = newAmount;
                 state.customVoucherCode = payload.customVoucherCode; state.customVoucherAmount = payload.customVoucherAmount;
                 document.getElementById('voucher-usage-badge').textContent = `Terpakai: ${state.customVoucherUsedBy.length}/5`;
             }
