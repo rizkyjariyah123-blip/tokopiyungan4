@@ -80,6 +80,16 @@
     </div>
   </div>
 
+  <!-- POPUP PROMO OTOMATIS MODAL -->
+  <div id="promo-popup-modal" class="fixed inset-0 bg-black/75 z-[1000005] hidden flex justify-center items-center backdrop-blur-sm p-6 fade-in">
+    <div class="relative max-w-sm w-full drop-shadow-2xl" style="animation: slideInBottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;">
+      <button onclick="app.closePromoPopup()" class="absolute -top-4 -right-4 w-10 h-10 bg-white text-gray-800 rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 z-10 font-bold border border-gray-100 transition-transform hover:scale-110"><i class="fa-solid fa-times text-xl"></i></button>
+      <div class="rounded-2xl overflow-hidden bg-white">
+        <img id="promo-popup-img" src="" class="w-full h-auto max-h-[70vh] object-contain cursor-pointer" onclick="app.closePromoPopup()">
+      </div>
+    </div>
+  </div>
+
   <!-- PRODUCT DETAIL MODAL -->
   <div id="product-detail-modal" class="fixed inset-0 bg-black/60 z-[100000] hidden flex flex-col justify-end sm:justify-center items-center backdrop-blur-sm sm:p-4">
     <div class="bg-white sm:rounded-3xl shadow-2xl w-full max-w-md h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden relative fade-in flex flex-col rounded-t-3xl">
@@ -1068,6 +1078,30 @@
             <textarea id="setting-categories" rows="2" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm mb-4"></textarea>
             <button onclick="app.saveSettingsData('category')" class="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl">Simpan Kategori</button>
           </div>
+          
+          <!-- KELOLA POPUP PROMO -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 border-l-4 border-l-pink-500 md:col-span-2">
+            <h3 class="text-lg font-bold text-gray-900 mb-2 border-b pb-2 flex items-center"><i class="fa-solid fa-rectangle-ad text-pink-500 mr-2"></i> Popup Promo Otomatis</h3>
+            <p class="text-xs text-gray-500 mb-4">Gambar ini akan muncul sebagai Pop-Up (Modal Box) sekitar 12 detik setelah pelanggan membuka aplikasi.</p>
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <div class="w-full sm:w-40 h-40 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center shrink-0 overflow-hidden relative">
+                    <img id="admin-popup-preview" src="" class="w-full h-full object-contain hidden">
+                    <span id="admin-popup-placeholder" class="text-[10px] font-bold text-gray-400 text-center px-2">Belum ada gambar</span>
+                </div>
+                <div class="flex-1 flex flex-col justify-center space-y-3">
+                    <input type="text" id="setting-popup-url" placeholder="Paste URL ATAU klik Upload 👉" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-500 outline-none">
+                    <div class="flex gap-2">
+                        <label class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-colors cursor-pointer flex items-center justify-center text-xs flex-1">
+                            <i class="fa-solid fa-upload mr-2"></i> Upload File Device
+                            <input type="file" id="upload-popup-image" accept="image/*" class="hidden" onchange="app.handlePopupImageUpload(event)">
+                        </label>
+                        <button onclick="document.getElementById('setting-popup-url').value=''; document.getElementById('admin-popup-preview').src=''; document.getElementById('admin-popup-preview').classList.add('hidden'); document.getElementById('admin-popup-placeholder').classList.remove('hidden');" class="bg-red-500 hover:bg-red-600 text-white py-2.5 px-4 rounded-xl flex items-center justify-center shadow-md"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+            <button id="btn-save-popup" onclick="app.saveSettingsData('popup')" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors">Simpan Popup Promo</button>
+          </div>
+
           <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 border-l-4 border-l-yellow-400">
             <h3 class="text-lg font-bold text-gray-900 mb-2 border-b pb-2">QRIS Dinamis Otomatis</h3>
             <p class="text-xs text-gray-500 mb-4">Paste Teks hasil scan QRIS toko Anda (Mentahan String QRIS).</p>
@@ -1185,6 +1219,7 @@
       buyerLat: null, buyerLng: null, completedOrdersCount: 0,
       customVoucherCode: '', customVoucherAmount: 0, appliedManualVoucherCode: '', appliedManualVoucherAmount: 0, customVoucherUsedBy: [],
       activePointsAnim: null, appliedPointsDiscount: 0, pointsToDeduct: 0, adminAvatar: '', currentView: 'home',
+      popupPromoUrl: '', hasShownPromo: false,
       expandedSections: { semua: false, promo: false, diskon: false, hemat: false },
       partners: [], editingPartnerId: null, tempProductImages: [],
       modalData: { product: null, selectedVariantIdx: -1, selectedAttributeIdx: -1, qty: 1, currentImageIdx: 0 }
@@ -1425,6 +1460,7 @@
             state.customVoucherCode = d.customVoucherCode || ''; state.customVoucherAmount = d.customVoucherAmount || 0;
             state.customVoucherUsedBy = d.customVoucherUsedBy || [];
             state.adminAvatar = d.adminAvatar || '';
+            state.popupPromoUrl = d.popupPromoUrl || '';
 
             let pData = []; prodSnap.forEach(doc => pData.push({ id: doc.id, ...doc.data() }));
             pData.sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)); state.products = pData;
@@ -1443,16 +1479,41 @@
                 document.getElementById('setting-voucher-amount').value = state.customVoucherAmount;
                 document.getElementById('voucher-usage-badge').textContent = `Terpakai: ${state.customVoucherUsedBy.length}/5`;
                 
+                document.getElementById('setting-popup-url').value = state.popupPromoUrl;
+                if(state.popupPromoUrl) {
+                    document.getElementById('admin-popup-preview').src = state.popupPromoUrl;
+                    document.getElementById('admin-popup-preview').classList.remove('hidden');
+                    document.getElementById('admin-popup-placeholder').classList.add('hidden');
+                }
+                
                 const cOpt = state.categories.filter(c=>c!=='Semua');
                 const addCategoryEl = document.getElementById('add-category');
                 if (addCategoryEl) {
                     addCategoryEl.innerHTML = (cOpt.length?cOpt:["Umum"]).map(c=>`<option value="${c}">${c}</option>`).join('');
                 }
                 this.renderAdminProducts(); this.renderAdminSliders(); this.renderAdminPartners(); this.fetchAdminOrders();
+            } else {
+                this.triggerPromoPopup();
             }
         } catch(e) { 
             console.error("DB Error:", e); 
         } finally { ui.toggleLoading('public-loading', false); }
+      },
+
+      triggerPromoPopup() {
+          if (state.popupPromoUrl && !state.hasShownPromo) {
+              setTimeout(() => {
+                  if (state.currentView === 'home' && !state.hasShownPromo && !state.isAdmin) {
+                      document.getElementById('promo-popup-img').src = state.popupPromoUrl;
+                      document.getElementById('promo-popup-modal').classList.remove('hidden');
+                      state.hasShownPromo = true;
+                  }
+              }, 12000); // 12 Detik delay
+          }
+      },
+
+      closePromoPopup() {
+          document.getElementById('promo-popup-modal').classList.add('hidden');
       },
 
       setActiveNav(tab) {
@@ -3100,6 +3161,40 @@
           this.initPublicSlider();
       },
 
+      handlePopupImageUpload(e) {
+          const file = e.target.files[0];
+          if(!file) return;
+          
+          ui.setBtnLoading('btn-save-popup', true, "Memproses...");
+          
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              const img = new Image();
+              img.onload = () => {
+                  const canvas = document.createElement('canvas');
+                  const MAX_SIZE = 800; // Optimal untuk kualitas banner popup
+                  let width = img.width; let height = img.height;
+                  
+                  if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                  else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                  
+                  canvas.width = width; canvas.height = height;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0, width, height);
+                  const b64 = canvas.toDataURL('image/jpeg', 0.8);
+                  
+                  document.getElementById('setting-popup-url').value = b64;
+                  document.getElementById('admin-popup-preview').src = b64;
+                  document.getElementById('admin-popup-preview').classList.remove('hidden');
+                  document.getElementById('admin-popup-placeholder').classList.add('hidden');
+                  document.getElementById('upload-popup-image').value = ''; 
+                  ui.setBtnLoading('btn-save-popup', false, "Simpan Popup Promo");
+              };
+              img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+      },
+
       async saveSettingsData(type) {
           try {
               const ref = getDocRef('settings', 'app_config');
@@ -3120,8 +3215,12 @@
                   state.customVoucherCode = payload.customVoucherCode; state.customVoucherAmount = payload.customVoucherAmount;
                   document.getElementById('voucher-usage-badge').textContent = `Terpakai: ${state.customVoucherUsedBy.length}/5`;
               }
+              if(type === 'popup') { 
+                  payload.popupPromoUrl = document.getElementById('setting-popup-url').value.trim(); 
+                  state.popupPromoUrl = payload.popupPromoUrl; 
+              }
               await setDoc(ref, payload, { merge: true }); ui.showToast("Disimpan!");
-              if(type !== 'slider' && type !== 'qris' && type !== 'voucher') this.loadData();
+              if(type !== 'slider' && type !== 'qris' && type !== 'voucher' && type !== 'popup') this.loadData();
           } catch(e) { ui.showToast(`Gagal: ${e.message}`, "error"); }
       },
 
