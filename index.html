@@ -994,8 +994,14 @@
               <input type="text" id="add-partner-name" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
-              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">URL Gambar / Logo</label>
-              <input type="text" id="add-partner-image" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500">
+              <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Gambar / Logo Partner</label>
+              <div class="flex gap-2">
+                  <input type="text" id="add-partner-image" placeholder="Paste URL ATAU klik Upload 👉" class="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                  <label class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-colors cursor-pointer flex items-center shrink-0">
+                      <i class="fa-solid fa-upload sm:mr-2"></i> <span class="hidden sm:inline">Upload</span>
+                      <input type="file" id="upload-partner-image" accept="image/*" class="hidden" onchange="app.handlePartnerImageUpload(event)">
+                  </label>
+              </div>
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Link URL (Opsional)</label>
@@ -1168,7 +1174,7 @@
 
     // KARENA ANDA BERMIGRASI KE SHARED HOSTING, KITA GUNAKAN KOLEKSI ROOT JIKA BUKAN PREVIEW
     // Fungsi ini juga kompatibel penuh dengan mode Preview Canvas Artifacts
-    const getCol = (name) => IS_PREVIEW ? collection(db, 'artifacts', typeof __app_id !== 'undefined' ? __app_id : 'toko', 'public', 'data', name) : collection(db, name);
+    const getCol = (name) => IS_PREVIEW ? collection(db, 'artifacts', typeof __app_id !== 'undefined' ? __app_id : 'default-app-id', 'public', 'data', name) : collection(db, name);
     const getDocRef = (colName, docId) => doc(getCol(colName), docId);
     const getProfileRef = (uid) => doc(getCol('profiles'), uid);
 
@@ -2034,10 +2040,22 @@
           if (section) section.classList.remove('hidden');
 
           container.innerHTML = state.partners.map(p => `
-              <div onclick="app.openPartnerDetail('${p.id}')" class="cursor-pointer bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:shadow-md transition-shadow group">
-                  <img src="${p.img || 'https://placehold.co/100x100?text=No+Image'}" class="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <h4 class="text-xs sm:text-sm font-bold text-gray-800 leading-tight">${p.name}</h4>
-                  ${p.desc ? `<p class="text-[9px] sm:text-[10px] text-gray-500 mt-1 line-clamp-2">${p.desc}</p>` : ''}
+              <div onclick="app.openPartnerDetail('${p.id}')" class="cursor-pointer bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col h-full shadow-sm">
+                  <div class="w-full aspect-square bg-gray-50 overflow-hidden relative border-b border-gray-100">
+                      <img src="${p.img || 'https://placehold.co/400x400?text=No+Image'}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                  </div>
+                  <div class="p-3 sm:p-4 flex flex-col flex-1 text-center justify-between bg-white">
+                      <div>
+                          <h4 class="text-sm sm:text-base font-black text-emerald-600 leading-tight mb-1 truncate">${p.name}</h4>
+                          <p class="text-[10px] sm:text-xs text-gray-500 line-clamp-2 leading-relaxed mb-3">${p.desc || 'Partner Resmi Terpercaya'}</p>
+                          <div class="flex justify-center text-yellow-400 text-[10px] sm:text-xs mb-4 space-x-1">
+                              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                          </div>
+                      </div>
+                      <div class="w-full bg-[#10b981] group-hover:bg-[#059669] text-white font-medium py-2 sm:py-2.5 rounded text-xs sm:text-sm transition-colors mt-auto flex items-center justify-center">
+                          Lihat Detail <i class="fa-solid fa-angles-right text-[10px] ml-1.5"></i>
+                      </div>
+                  </div>
               </div>
           `).join('');
       },
@@ -2980,51 +2998,143 @@
           state.editingPartnerId = null; 
           document.getElementById('form-partner-title').textContent = "Tambah Partner"; 
           document.getElementById('btn-add-partner-text').textContent = "Simpan Partner"; 
-          document.getElementById('btn-cancel-edit-partner').classList.add('hidden'); 
-          ['add-partner-name','add-partner-image','add-partner-link','add-partner-desc'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+          document.getElementById('btn-cancel-edit-partner').classList.add('hidden');
+          
+          document.getElementById('add-partner-name').value = ''; 
+          document.getElementById('add-partner-image').value = ''; 
+          document.getElementById('add-partner-link').value = ''; 
+          document.getElementById('add-partner-desc').value = '';
+      },
+
+      handlePartnerImageUpload(e) {
+          const file = e.target.files[0];
+          if(!file) return;
+          
+          ui.setBtnLoading('btn-add-partner', true, "Memproses...");
+          
+          const reader = new FileReader();
+          reader.onload = (event) => {
+              const img = new Image();
+              img.onload = () => {
+                  const canvas = document.createElement('canvas');
+                  const MAX_SIZE = 600; // Optimal untuk logo partner
+                  let width = img.width; let height = img.height;
+                  
+                  if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+                  else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                  
+                  canvas.width = width; canvas.height = height;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0, width, height);
+                  const b64 = canvas.toDataURL('image/jpeg', 0.8);
+                  
+                  document.getElementById('add-partner-image').value = b64;
+                  document.getElementById('upload-partner-image').value = ''; 
+                  ui.setBtnLoading('btn-add-partner', false, state.editingPartnerId ? "Simpan Perubahan" : "Simpan Partner");
+              };
+              img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
       },
 
       async submitNewPartner() {
-          const n = document.getElementById('add-partner-name').value, i = document.getElementById('add-partner-image').value, l = document.getElementById('add-partner-link').value, d = document.getElementById('add-partner-desc').value;
-          if(!n || !i) return ui.showToast("Nama dan Gambar/Logo Wajib diisi!", "error");
+          const n = document.getElementById('add-partner-name').value;
+          const img = document.getElementById('add-partner-image').value;
+          const link = document.getElementById('add-partner-link').value;
+          const desc = document.getElementById('add-partner-desc').value;
+
+          if(!n || !img) return ui.showToast("Nama dan URL Gambar wajib diisi!", "error");
           ui.setBtnLoading('btn-add-partner', true);
-          
+
           try {
-              const payload = { name: n, img: i, link: l, desc: d, updatedAt: Date.now() };
-              if (state.editingPartnerId) await setDoc(getDocRef('partners', state.editingPartnerId), payload, {merge:true});
-              else { payload.createdAt = Date.now(); await setDoc(getDocRef('partners', "PTR-" + Date.now().toString().slice(-6)), payload); }
-              ui.showToast("Partner Berhasil Disimpan!"); this.cancelEditPartner(); this.refreshAdminPartners();
-          } catch(e) { ui.showToast(`Gagal: ${e.message}`, "error"); } 
-          finally { ui.setBtnLoading('btn-add-partner', false, state.editingPartnerId ? 'Simpan Perubahan' : 'Simpan Partner'); }
+              const payload = { name: n, img, link, desc, updatedAt: Date.now() };
+              if (state.editingPartnerId) {
+                  await setDoc(getDocRef('partners', state.editingPartnerId), payload, { merge: true });
+              } else {
+                  payload.createdAt = Date.now();
+                  await setDoc(getDocRef('partners', "PTN-" + Date.now().toString().slice(-6)), payload);
+              }
+              ui.showToast("Partner disimpan!");
+              this.cancelEditPartner();
+              this.refreshAdminPartners();
+          } catch (e) {
+              ui.showToast(`Gagal: ${e.message}`, "error");
+          } finally {
+              ui.setBtnLoading('btn-add-partner', false, state.editingPartnerId ? 'Simpan Perubahan' : 'Simpan Partner');
+          }
       },
 
-      deletePartner(id) { ui.showConfirm("Hapus partner ini?", async () => { try { await deleteDoc(getDocRef('partners', id)); ui.showToast("Partner dihapus."); this.refreshAdminPartners(); } catch(e) { ui.showToast("Gagal menghapus", "error"); } }); },
+      deletePartner(id) {
+          ui.showConfirm("Hapus partner ini?", async () => {
+              try {
+                  await deleteDoc(getDocRef('partners', id));
+                  ui.showToast("Partner dihapus.");
+                  this.refreshAdminPartners();
+              } catch(e) { ui.showToast("Gagal hapus partner", "error"); }
+          });
+      },
 
-      renderAdminSliders() { document.getElementById('admin-slider-list').innerHTML = state.sliderImages.length ? state.sliderImages.map((u, i) => `<div class="relative rounded-lg border overflow-hidden group aspect-w-3 aspect-h-1"><img src="${u}" class="object-cover w-full h-24"><button onclick="app.removeSliderImage(${i})" class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded"><i class="fa-solid fa-times text-xs"></i></button></div>`).join('') : '<p class="text-xs text-gray-500">Belum ada slide.</p>'; },
-      addSliderImage() { const v = document.getElementById('add-slider-url').value.trim(); if(v){ state.sliderImages.push(v); document.getElementById('add-slider-url').value=''; this.renderAdminSliders(); } },
-      removeSliderImage(i) { state.sliderImages.splice(i,1); this.renderAdminSliders(); },
+      renderAdminSliders() {
+          const list = document.getElementById('admin-slider-list');
+          if(!list) return;
+          list.innerHTML = state.sliderImages.map((url, i) => `
+              <div class="relative rounded-xl overflow-hidden border border-gray-200 group h-32">
+                  <img src="${url}" class="w-full h-full object-cover">
+                  <button onclick="app.removeSliderImage(${i})" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"><i class="fa-solid fa-trash"></i></button>
+              </div>
+          `).join('');
+      },
+
+      addSliderImage() {
+          const url = document.getElementById('add-slider-url').value.trim();
+          if(!url) return;
+          state.sliderImages.push(url);
+          document.getElementById('add-slider-url').value = '';
+          this.renderAdminSliders();
+          this.initPublicSlider();
+      },
+
+      removeSliderImage(idx) {
+          state.sliderImages.splice(idx, 1);
+          this.renderAdminSliders();
+          this.initPublicSlider();
+      },
+
       async saveSettingsData(type) {
-        try {
-            const ref = getDocRef('settings', 'app_config'); let payload = {};
-            if(type === 'wa') payload.waNumber = document.getElementById('setting-wa').value;
-            if(type === 'category') payload.categories = document.getElementById('setting-categories').value.split(',').map(s=>s.trim()).filter(s=>s);
-            if(type === 'slider') payload.sliders = state.sliderImages;
-            if(type === 'qris') { payload.qrisString = document.getElementById('setting-qris').value.trim(); state.qrisString = payload.qrisString; }
-            if(type === 'voucher') { 
-                const newCode = document.getElementById('setting-voucher-code').value.trim().toUpperCase(); 
-                const newAmount = Number(document.getElementById('setting-voucher-amount').value) || 0; 
-                if (newCode !== state.customVoucherCode) { payload.customVoucherUsedBy = []; state.customVoucherUsedBy = []; }
-                payload.customVoucherCode = newCode; payload.customVoucherAmount = newAmount;
-                state.customVoucherCode = payload.customVoucherCode; state.customVoucherAmount = payload.customVoucherAmount;
-                document.getElementById('voucher-usage-badge').textContent = `Terpakai: ${state.customVoucherUsedBy.length}/5`;
-            }
-            await setDoc(ref, payload, { merge: true }); ui.showToast("Disimpan!");
-            if(type !== 'slider' && type !== 'qris' && type !== 'voucher') this.loadData();
-        } catch(e) { ui.showToast(`Gagal: ${e.message}`, "error"); }
+          try {
+              const ref = getDocRef('settings', 'app_config');
+              let payload = {};
+              if(type === 'wa') { payload.waNumber = document.getElementById('setting-wa').value.trim(); state.waNumber = payload.waNumber; }
+              if(type === 'category') { 
+                  const cats = document.getElementById('setting-categories').value.split(',').map(s=>s.trim()).filter(s=>s);
+                  payload.categories = cats; state.categories = ["Semua", ...cats]; 
+                  this.renderCategoryPills();
+              }
+              if(type === 'slider') payload.sliders = state.sliderImages;
+              if(type === 'qris') { payload.qrisString = document.getElementById('setting-qris').value.trim(); state.qrisString = payload.qrisString; }
+              if(type === 'voucher') { 
+                  const newCode = document.getElementById('setting-voucher-code').value.trim().toUpperCase(); 
+                  const newAmount = Number(document.getElementById('setting-voucher-amount').value) || 0; 
+                  if (newCode !== state.customVoucherCode) { payload.customVoucherUsedBy = []; state.customVoucherUsedBy = []; }
+                  payload.customVoucherCode = newCode; payload.customVoucherAmount = newAmount;
+                  state.customVoucherCode = payload.customVoucherCode; state.customVoucherAmount = payload.customVoucherAmount;
+                  document.getElementById('voucher-usage-badge').textContent = `Terpakai: ${state.customVoucherUsedBy.length}/5`;
+              }
+              await setDoc(ref, payload, { merge: true }); ui.showToast("Disimpan!");
+              if(type !== 'slider' && type !== 'qris' && type !== 'voucher') this.loadData();
+          } catch(e) { ui.showToast(`Gagal: ${e.message}`, "error"); }
       },
-      contactAdmin() { if(state.waNumber) { let p=state.waNumber.replace(/[^0-9]/g,''); window.open(`https://wa.me/${p.startsWith('0')?'62'+p.substring(1):p}`,'_blank'); } }
+
+      contactAdmin() { 
+          if(state.waNumber) { 
+              let p=state.waNumber.replace(/[^0-9]/g,''); 
+              window.open(`https://wa.me/${p.startsWith('0')?'62'+p.substring(1):p}?text=Halo Admin Toko Piyungan, saya butuh bantuan...`,'_blank'); 
+          } else { ui.showToast("Nomor WA belum diatur.", "error"); }
+      }
     };
-    window.app = app; document.addEventListener("DOMContentLoaded", () => app.init());
+
+    window.app = app;
+    document.addEventListener('DOMContentLoaded', () => app.init());
   </script>
 </body>
 </html>
