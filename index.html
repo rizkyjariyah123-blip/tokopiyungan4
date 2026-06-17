@@ -2916,12 +2916,18 @@
                 let payInfo = order.paymentInfo || {}; if(typeof payInfo === 'string') { try { payInfo = JSON.parse(payInfo); } catch(e){} }
                 let profInfo = order.profitInfo || {}; if(typeof profInfo === 'string') { try { profInfo = JSON.parse(profInfo); } catch(e){} }
 
-                let itemsHtml = items.length > 0 ? items.map(item => `
+                let totalLabaProduk = 0;
+                let itemsHtml = items.length > 0 ? items.map(item => {
+                    let itemProfit = (item.sellPrice || 0) - (item.baseCost || 0);
+                    let totalItemProfit = itemProfit * (item.qty || 1);
+                    totalLabaProduk += totalItemProfit;
+                    return `
                     <div class="mb-2">
                         <p class="text-sm text-gray-700">- ${item.name || 'Produk'} ${item.variant && item.variant !== '-' ? `[${item.variant}]` : ''} <span class="font-bold">(x${item.qty || 1})</span></p>
-                        <p class="text-[11px] text-gray-500 ml-2.5">Jual: ${formatRupiahSimple(item.sellPrice || 0)} <span class="mx-1">|</span> Asli: ${formatRupiahSimple(item.baseCost || 0)} <span class="mx-1">|</span> <span class="text-green-600 font-bold">Laba: ${formatRupiahSimple(item.profit || 0)}</span></p>
+                        <p class="text-[11px] text-gray-500 ml-2.5">Jual: ${formatRupiahSimple(item.sellPrice || 0)} <span class="mx-1">|</span> Asli: ${formatRupiahSimple(item.baseCost || 0)} <span class="mx-1">|</span> <span class="text-green-600 font-bold">Laba: ${formatRupiahSimple(totalItemProfit)}</span></p>
                     </div>
-                `).join('') : '<p class="text-xs text-gray-400">Detail produk kosong.</p>';
+                    `;
+                }).join('') : '<p class="text-xs text-gray-400">Detail produk kosong.</p>';
                 
                 // Parse voucher/discount info
                 let discountHtml = '';
@@ -2935,11 +2941,10 @@
                     discountHtml += `<p class="text-sm font-medium text-orange-500 mt-1.5 flex items-center gap-2"><i class="fa-solid fa-coins w-4 text-center"></i> Tukar Poin: -${formatRupiahSimple(payInfo.pointsToUse)}</p>`;
                 }
 
-                let totalLabaProduk = profInfo.totalItems || 0;
-                let labaOngkir = (payInfo.shippingCost || 0) - (payInfo.ongkirDiscount || 0);
+                let ongkir = payInfo.shippingCost || 0;
                 let diskonPromo = payInfo.diskon || 0;
-                let tukarPoin = payInfo.pointsToUse || 0;
-                let totalLabaKeseluruhan = totalLabaProduk + labaOngkir - diskonPromo - tukarPoin;
+                let diskonOngkir = payInfo.ongkirDiscount || 0;
+                let totalLabaKeseluruhan = totalLabaProduk + ongkir - diskonPromo - diskonOngkir;
 
                 let labaDetailsHtml = `
                     <div class="flex justify-between text-sm text-green-700 mb-1.5">
@@ -2947,18 +2952,18 @@
                         <span>${formatRupiahSimple(totalLabaProduk)}</span>
                     </div>
                     <div class="flex justify-between text-sm text-green-700 mb-2">
-                        <span>Laba Ongkos Kirim:</span>
-                        <span>${formatRupiahSimple(labaOngkir)}</span>
+                        <span>Ongkos Kirim:</span>
+                        <span>${formatRupiahSimple(ongkir)}</span>
                     </div>
+                    ${diskonOngkir > 0 ? `
+                    <div class="flex justify-between text-sm text-red-500 mb-1.5">
+                        <span>Diskon Ongkir:</span>
+                        <span>-${formatRupiahSimple(diskonOngkir)}</span>
+                    </div>` : ''}
                     ${diskonPromo > 0 ? `
                     <div class="flex justify-between text-sm text-red-500 mb-1.5">
-                        <span>Potongan Diskon Promo:</span>
+                        <span>Diskon Promo:</span>
                         <span>-${formatRupiahSimple(diskonPromo)}</span>
-                    </div>` : ''}
-                    ${tukarPoin > 0 ? `
-                    <div class="flex justify-between text-sm text-red-500 mb-1.5">
-                        <span>Potongan Tukar Poin:</span>
-                        <span>-${formatRupiahSimple(tukarPoin)}</span>
                     </div>` : ''}
                     <div class="flex justify-between text-[15px] font-bold text-gray-800 border-t border-[#bbf7d0] pt-3 mt-2">
                         <span>Total Laba Keseluruhan:</span>
