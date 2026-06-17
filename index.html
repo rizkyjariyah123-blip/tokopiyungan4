@@ -937,6 +937,28 @@
                                 </table>
                             </div>
                         </div>
+
+                        <!-- Tabel Top Pelanggan -->
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider"><i class="fa-solid fa-users text-purple-500 mr-2"></i> 10 Pelanggan Terbanyak Belanja</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse min-w-[700px]">
+                                    <thead>
+                                        <tr class="text-[10px] text-white uppercase tracking-wider bg-[#6d28d9]">
+                                            <th class="py-3 px-4 font-bold rounded-tl-lg">No</th>
+                                            <th class="py-3 px-4 font-bold">Nama Pelanggan</th>
+                                            <th class="py-3 px-4 font-bold">No. Handphone</th>
+                                            <th class="py-3 px-4 font-bold text-center">Jml Pesanan Selesai</th>
+                                            <th class="py-3 px-4 font-bold text-center">Jml Transaksi</th>
+                                            <th class="py-3 px-4 font-bold text-right rounded-tr-lg">Total Belanja (Rp)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-top-customers" class="text-sm text-gray-700 divide-y divide-gray-100">
+                                        <!-- Rendered by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- TAB PENGATURAN -->
@@ -2445,6 +2467,25 @@
             let paymentMethods = {};
             let productSales = {}; // Untuk tabel top 10
             let typeSales = { 'Produk Fisik / Catering': 0, 'TopUp / Digital': 0 };
+            let customerSales = {}; // Untuk tabel top 10 pelanggan
+
+            // Loop untuk mengumpulkan total transaksi seluruh status berdasarkan waktu
+            appOrders.forEach(o => {
+                let filterPass = true;
+                if (filterVal === 'today') {
+                    const dPart = o.date ? o.date.split(',')[0].trim() : '';
+                    if (dPart !== todayStr) filterPass = false;
+                }
+                
+                if (filterPass) {
+                    let custPhone = o.customerPhone || 'Unknown';
+                    let custName = o.customerName || 'Unknown';
+                    if (!customerSales[custPhone]) {
+                        customerSales[custPhone] = { name: custName, phone: custPhone, completedOrders: 0, totalTransactions: 0, totalSpent: 0 };
+                    }
+                    customerSales[custPhone].totalTransactions += 1;
+                }
+            });
 
             completedOrders.forEach(o => {
                 let payInfo = o.paymentInfo || {};
@@ -2454,6 +2495,13 @@
 
                 totalPenjualan += (payInfo.total || 0);
                 totalLabaProduk += (profInfo.totalItems || 0);
+                
+                // Track metrics pesanan selesai untuk pelanggan
+                let custPhone = o.customerPhone || 'Unknown';
+                if (customerSales[custPhone]) {
+                    customerSales[custPhone].completedOrders += 1;
+                    customerSales[custPhone].totalSpent += (payInfo.total || 0);
+                }
                 
                 let ongkirAsli = payInfo.shippingCost || 0;
                 let discOngkir = payInfo.ongkirDiscount || 0;
@@ -2542,6 +2590,26 @@
                             <td class="py-3 px-4 text-center"><span class="bg-gray-200 text-gray-600 text-[9px] font-bold px-2 py-1 rounded">${p.category}</span></td>
                             <td class="py-3 px-4 text-center font-bold">${p.qty}</td>
                             <td class="py-3 px-4 text-right font-bold text-[#d96a56]">${formatRupiahSimple(p.revenue)}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+
+            // Render Table Top 10 Pelanggan Terbanyak Belanja
+            const topCustArray = Object.values(customerSales).sort((a, b) => b.totalSpent - a.totalSpent).slice(0, 10);
+            const tbodyCust = document.getElementById('dash-top-customers');
+            if(tbodyCust) {
+                if(topCustArray.length === 0) {
+                    tbodyCust.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-400">Belum ada data pelanggan</td></tr>`;
+                } else {
+                    tbodyCust.innerHTML = topCustArray.map((c, i) => `
+                        <tr class="${i%2===0?'bg-white':'bg-gray-50'} hover:bg-purple-50 transition">
+                            <td class="py-3 px-4 font-bold text-gray-500">${i+1}</td>
+                            <td class="py-3 px-4 font-semibold text-gray-800">${c.name}</td>
+                            <td class="py-3 px-4 text-gray-600">${c.phone}</td>
+                            <td class="py-3 px-4 text-center font-bold text-green-600">${c.completedOrders}</td>
+                            <td class="py-3 px-4 text-center font-bold text-gray-600">${c.totalTransactions}</td>
+                            <td class="py-3 px-4 text-right font-bold text-[#d96a56]">${formatRupiahSimple(c.totalSpent)}</td>
                         </tr>
                     `).join('');
                 }
