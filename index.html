@@ -2955,7 +2955,7 @@
                                     Pembayaran: <span class="text-gray-900">${payInfo.method || '-'}</span>
                                 </p>
                                 ${payInfo.remaining > 0 ? `
-                                <p class="text-[15px] font-black ${order.status === 'selesai' ? 'text-gray-500' : 'text-gray-600'} mt-1.5">
+                                <p class="text-[15px] font-black ${order.status === 'selesai' ? 'text-gray-500' : 'text-red-600'} mt-1.5">
                                     Sisa Kurang Bayar (Tunai): ${formatRupiahSimple(payInfo.remaining)}
                                 </p>` : ''}
                             </div>
