@@ -2836,149 +2836,424 @@
             filterAdminOrders();
         }
 
+        function renderAdminOrdersList(list) {
+            const container = document.getElementById('admin-order-list'); if(!container) return;
+            if(list.length === 0) { container.innerHTML = `<div class="text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-300"><i class="fa-solid fa-box-open text-4xl text-gray-300 mb-3"></i><p class="text-sm text-gray-500 font-medium">Tidak ada pesanan.</p></div>`; return; }
+            
+            container.innerHTML = list.map(order => {
+                let selectBg = 'bg-white'; let selectText = 'text-gray-700';
+                if(order.status === 'selesai') { selectBg = 'bg-green-50'; selectText = 'text-green-700'; } else if(order.status === 'belum_bayar') { selectBg = 'bg-orange-50'; selectText = 'text-orange-700'; } else if(order.status === 'dikemas') { selectBg = 'bg-blue-50'; selectText = 'text-blue-700'; } else if(order.status === 'dikirim') { selectBg = 'bg-purple-50'; selectText = 'text-purple-700'; } else if(order.status === 'batal') { selectBg = 'bg-red-50'; selectText = 'text-red-700'; }
+                
+                let items = []; if(Array.isArray(order.items)) items = order.items; else if(typeof order.items === 'string') { try { items = JSON.parse(order.items); } catch(e){} }
+                let payInfo = order.paymentInfo || {}; if(typeof payInfo === 'string') { try { payInfo = JSON.parse(payInfo); } catch(e){} }
+                let profInfo = order.profitInfo || {}; if(typeof profInfo === 'string') { try { profInfo = JSON.parse(profInfo); } catch(e){} }
+
+                let itemsHtml = items.length > 0 ? items.map(item => `
+                    <div class="mb-2">
+                        <p class="text-sm text-gray-700">- ${item.name || 'Produk'} ${item.variant && item.variant !== '-' ? `[${item.variant}]` : ''} <span class="font-bold">(x${item.qty || 1})</span></p>
+                        <p class="text-[11px] text-gray-500 ml-2.5">Jual: ${formatRupiahSimple(item.sellPrice || 0)} <span class="mx-1">|</span> Asli: ${formatRupiahSimple(item.baseCost || 0)} <span class="mx-1">|</span> <span class="text-green-600 font-bold">Laba: ${formatRupiahSimple(item.profit || 0)}</span></p>
+                    </div>
+                `).join('') : '<p class="text-xs text-gray-400">Detail produk kosong.</p>';
+                
+                // Parse voucher/discount info
+                let discountHtml = '';
+                if (payInfo.diskon > 0) {
+                    discountHtml += `<p class="text-sm font-medium text-green-600 mt-1.5 flex items-center gap-2"><i class="fa-solid fa-tags w-4 text-center"></i> Diskon Promo: -${formatRupiahSimple(payInfo.diskon)}</p>`;
+                }
+                if (payInfo.ongkirDiscount > 0) {
+                    discountHtml += `<p class="text-sm font-medium text-green-600 mt-1.5 flex items-center gap-2"><i class="fa-solid fa-truck-fast w-4 text-center"></i> Diskon Ongkir: -${formatRupiahSimple(payInfo.ongkirDiscount)}</p>`;
+                }
+                if (payInfo.pointsToUse > 0) {
+                    discountHtml += `<p class="text-sm font-medium text-orange-500 mt-1.5 flex items-center gap-2"><i class="fa-solid fa-coins w-4 text-center"></i> Tukar Poin: -${formatRupiahSimple(payInfo.pointsToUse)}</p>`;
+                }
+
+                let totalLabaProduk = profInfo.totalItems || 0;
+                let labaOngkir = (payInfo.shippingCost || 0) - (payInfo.ongkirDiscount || 0);
+                let diskonPromo = payInfo.diskon || 0;
+                let tukarPoin = payInfo.pointsToUse || 0;
+                let totalLabaKeseluruhan = totalLabaProduk + labaOngkir - diskonPromo - tukarPoin;
+
+                let labaDetailsHtml = `
+                    <div class="flex justify-between text-sm text-green-700 mb-1.5">
+                        <span>Total Laba Produk:</span>
+                        <span>${formatRupiahSimple(totalLabaProduk)}</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-green-700 mb-2">
+                        <span>Laba Ongkos Kirim:</span>
+                        <span>${formatRupiahSimple(labaOngkir)}</span>
+                    </div>
+                    ${diskonPromo > 0 ? `
+                    <div class="flex justify-between text-sm text-red-500 mb-1.5">
+                        <span>Potongan Diskon Promo:</span>
+                        <span>-${formatRupiahSimple(diskonPromo)}</span>
+                    </div>` : ''}
+                    ${tukarPoin > 0 ? `
+                    <div class="flex justify-between text-sm text-red-500 mb-1.5">
+                        <span>Potongan Tukar Poin:</span>
+                        <span>-${formatRupiahSimple(tukarPoin)}</span>
+                    </div>` : ''}
+                    <div class="flex justify-between text-[15px] font-bold text-gray-800 border-t border-[#bbf7d0] pt-3 mt-2">
+                        <span>Total Laba Keseluruhan:</span>
+                        <span class="text-green-700">${formatRupiahSimple(totalLabaKeseluruhan)}</span>
+                    </div>
+                `;
+
+                return `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+                    <div class="p-6 md:flex md:gap-6 flex-col md:flex-row">
+                        <div class="flex-1">
+                            <div class="mb-5">
+                                <h3 class="font-bold text-gray-900 text-lg flex items-center gap-2">
+                                    ${order.id || '-'} 
+                                    <span class="text-xs text-gray-500 font-normal flex items-center gap-1"><i class="fa-regular fa-calendar"></i> ${order.date || '-'}</span>
+                                </h3>
+                                <p class="text-sm text-gray-600 mt-2 flex items-center gap-2">
+                                    <i class="fa-regular fa-user w-4 text-center"></i> ${order.customerName} (${order.customerPhone})
+                                </p>
+                                <p class="text-sm text-gray-600 flex items-start gap-2 mt-1.5">
+                                    <i class="fa-solid fa-location-dot w-4 text-center text-red-500 mt-0.5"></i> <span>${order.address}</span>
+                                </p>
+                                ${order.schedule && order.schedule !== '-' ? `
+                                <p class="text-sm text-purple-600 font-medium mt-1.5 flex items-center gap-2">
+                                    <i class="fa-regular fa-clock w-4 text-center"></i> Jadwal: ${order.schedule}
+                                </p>` : ''}
+                                
+                                <div class="mt-2.5">
+                                    ${discountHtml}
+                                </div>
+
+                                ${order.note && order.note !== '-' ? `
+                                <p class="text-sm text-gray-600 mt-3 flex items-start gap-2 bg-yellow-50 p-2.5 rounded border border-yellow-200">
+                                    <i class="fa-regular fa-comment-dots w-4 text-center text-yellow-600 mt-0.5"></i> 
+                                    <span><strong class="text-xs text-yellow-800 uppercase tracking-wider block mb-0.5">Catatan Pesanan:</strong> ${order.note}</span>
+                                </p>` : ''}
+                            </div>
+                            
+                            <div class="mb-5 border-t border-gray-100 pt-4">
+                                <h4 class="text-sm font-bold text-gray-900 mb-3">Rincian Barang & Potongan Harga:</h4>
+                                <div class="space-y-1">
+                                    ${itemsHtml}
+                                </div>
+                            </div>
+                            
+                            <div class="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl p-4 mb-5 shadow-sm">
+                                <div class="flex justify-between items-center border-b border-[#bbf7d0] pb-3 mb-3">
+                                    <h4 class="text-sm font-bold text-[#166534] flex items-center gap-2">
+                                        <i class="fa-solid fa-arrow-trend-up"></i> Rincian Keuntungan (Laba)
+                                    </h4>
+                                    <span class="bg-[#dcfce7] text-[#166534] text-[9px] font-bold px-2.5 py-1 rounded">HANYA ADMIN</span>
+                                </div>
+                                ${labaDetailsHtml}
+                            </div>
+                            
+                            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <p class="text-sm font-bold text-gray-700">
+                                    Total Transaksi: <span class="text-green-600">${formatRupiahSimple(payInfo.total || 0)}</span>
+                                    <span class="text-gray-300 mx-1.5">|</span> 
+                                    Ongkir: <span class="text-green-600">${formatRupiahSimple(payInfo.shippingCost || 0)}</span>
+                                    <span class="text-gray-300 mx-1.5">|</span> 
+                                    Pembayaran: <span class="text-gray-900">${payInfo.method || '-'}</span>
+                                </p>
+                                ${payInfo.remaining > 0 ? `
+                                <p class="text-[15px] font-black ${order.status === 'selesai' ? 'text-gray-500' : 'text-gray-600'} mt-1.5">
+                                    Sisa Kurang Bayar (Tunai): ${formatRupiahSimple(payInfo.remaining)}
+                                </p>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Sidebar Actions -->
+                        <div class="mt-4 md:mt-0 md:w-56 flex flex-col justify-start md:border-l md:border-gray-100 md:pl-6 space-y-3">
+                            <div class="w-full">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">Ubah Status</label>
+                                <select onchange="updateOrderStatus('${order.id}', this.value)" class="w-full text-sm font-bold border border-gray-300 rounded-lg px-3 py-2.5 outline-none focus:border-brand ${selectBg} ${selectText} transition cursor-pointer">
+                                    <option value="belum_bayar" ${order.status === 'belum_bayar' ? 'selected' : ''}>Belum Bayar</option>
+                                    <option value="dikemas" ${order.status === 'dikemas' ? 'selected' : ''}>Dikemas</option>
+                                    <option value="dikirim" ${order.status === 'dikirim' ? 'selected' : ''}>Dikirim / Siap Ambil</option>
+                                    <option value="selesai" ${order.status === 'selesai' ? 'selected' : ''}>Selesai</option>
+                                    <option value="batal" ${order.status === 'batal' ? 'selected' : ''}>Dibatalkan</option>
+                                </select>
+                            </div>
+                            <button onclick="printInvoice('${order.id}')" class="w-full bg-white border border-gray-300 text-gray-700 font-bold py-2.5 rounded-lg shadow-sm hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-print"></i> Cetak Bukti
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
         async function updateOrderStatus(orderId, newStatus) {
-            const order = appOrders.find(o => o.id === orderId); if(!order) return;
-            order.status = newStatus;
             showLoader();
             try {
-                if (isFirebaseReady) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), order);
-                showToast('Sukses', 'Status pesanan diperbarui.');
-                renderAdminOrders();
-            } catch(e) { showToast('Error', 'Gagal perbarui status.'); }
+                const order = appOrders.find(o => o.id === orderId); 
+                if(order) {
+                    const oldStatus = order.status;
+                    order.status = newStatus;
+
+                    // Logika Poin saat Pesanan Selesai
+                    if (newStatus === 'selesai' && oldStatus !== 'selesai') {
+                        const customer = appUsers.find(u => u.phone === order.customerPhone);
+                        if (customer) {
+                            customer.points = (customer.points || 0) + 100;
+                            customer.completedOrders = (customer.completedOrders || 0) + 1;
+
+                            let referrer = null;
+                            if (customer.ref_used) {
+                                referrer = appUsers.find(u => u.my_ref_code && u.my_ref_code.toUpperCase() === customer.ref_used.toUpperCase());
+                                if (referrer) {
+                                    referrer.points = (referrer.points || 0) + 200;
+                                }
+                            }
+
+                            if (isFirebaseReady) {
+                                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', customer.username), customer);
+                                if (referrer) {
+                                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', referrer.username), referrer);
+                                }
+                            }
+                        }
+                    }
+
+                    renderAdminOrders();
+                    
+                    if (isFirebaseReady) {
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId), order);
+                        showToast('Status Diperbarui', `Pesanan diubah ke Firebase.`); 
+                    } else {
+                        showToast('Status Diperbarui Lokal', `Mode offline.`); 
+                    }
+                }
+            } catch(e) { showToast('Error', 'Gagal merubah status pesanan.'); }
             hideLoader();
         }
 
         function printInvoice(orderId) {
-            const order = appOrders.find(o => o.id === orderId); if(!order) return;
-            const pInfo = typeof order.paymentInfo === 'string' ? JSON.parse(order.paymentInfo) : order.paymentInfo;
-            const printContent = `
-                <div style="font-family: monospace; width: 300px; margin: 0 auto; border: 1px dashed #ccc; padding: 10px;">
-                    <h3 style="text-align: center; margin-bottom: 5px;">TOKO PIYUNGAN</h3>
-                    <p style="text-align: center; font-size: 10px; margin-top: 0; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">Jl. Raya Piyungan, Bantul</p>
-                    <p style="font-size: 10px; margin: 5px 0;">No: ${order.id}</p>
-                    <p style="font-size: 10px; margin: 5px 0;">Tgl: ${order.date}</p>
-                    <p style="font-size: 10px; margin: 5px 0;">Plg: ${order.customerName}</p>
-                    <div style="border-top: 1px dashed #ccc; margin: 10px 0;"></div>
-                    ${(Array.isArray(order.items) ? order.items : JSON.parse(order.items)).map(i => `
-                        <div style="font-size: 10px; margin-bottom: 5px;">
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>${i.name.substring(0, 20)}</span>
-                                <span>${formatRupiahSimple(i.sellPrice)}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; color: #555;">
-                                <span>${i.qty}x ${i.variant!=='-'?`[${i.variant}]`:''}</span>
-                                <span>${formatRupiahSimple(i.sellPrice * i.qty)}</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                    <div style="border-top: 1px dashed #ccc; margin: 10px 0;"></div>
-                    <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px;"><span>Ongkir:</span><span>${formatRupiahSimple(pInfo.shippingCost||0)}</span></div>
-                    ${(pInfo.diskon||0)>0 ? `<div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 3px;"><span>Diskon:</span><span>-${formatRupiahSimple(pInfo.diskon)}</span></div>` : ''}
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-top: 5px; border-top: 1px dashed #ccc; padding-top: 5px;"><span>TOTAL:</span><span>${formatRupiahSimple(pInfo.total||0)}</span></div>
-                    <p style="text-align: center; font-size: 10px; margin-top: 15px;">Terima kasih atas kunjungannya!</p>
-                </div>
-            `;
-            const win = window.open('', '', 'width=400,height=600');
-            win.document.write('<html><head><title>Print Invoice</title></head><body onload="window.print();window.close()">' + printContent + '</body></html>');
-            win.document.close();
-        }
+            const order = appOrders.find(o => o.id === orderId);
+            if (!order) return showToast('Error', 'Pesanan tidak ditemukan.');
 
-        function renderAdminOrdersList(list) {
-            const container = document.getElementById('admin-order-list'); if(!container) return;
-            if(list.length === 0) { container.innerHTML = `<div class="text-center py-10 text-gray-500">Tidak ada pesanan ditemukan.</div>`; return; }
-            container.innerHTML = list.map(o => {
-                const sColor = o.status === 'belum_bayar' ? 'orange' : (o.status === 'dikemas' ? 'blue' : (o.status === 'dikirim' ? 'purple' : (o.status === 'selesai' ? 'green' : 'red')));
-                const pInfo = typeof o.paymentInfo === 'string' ? JSON.parse(o.paymentInfo) : o.paymentInfo;
-                let actions = '';
-                if(o.status === 'belum_bayar') actions = `<button onclick="updateOrderStatus('${o.id}', 'dikemas')" class="bg-blue-500 text-white px-3 py-1 rounded text-xs">Tandai Dibayar & Kemas</button>`;
-                else if(o.status === 'dikemas') actions = `<button onclick="updateOrderStatus('${o.id}', 'dikirim')" class="bg-purple-500 text-white px-3 py-1 rounded text-xs">Kirim / Siap Ambil</button>`;
-                else if(o.status === 'dikirim') actions = `<button onclick="updateOrderStatus('${o.id}', 'selesai')" class="bg-green-500 text-white px-3 py-1 rounded text-xs">Selesaikan Pesanan</button>`;
-                
-                return `
-                <div class="border border-gray-200 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white shadow-sm">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-2">
-                            <span class="font-bold text-gray-800">${o.id}</span>
-                            <span class="bg-${sColor}-100 text-${sColor}-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">${o.status.replace('_', ' ')}</span>
-                        </div>
-                        <p class="text-xs text-gray-500 mb-1"><i class="fa-solid fa-user"></i> ${o.customerName} (${o.customerPhone})</p>
-                        <p class="text-xs text-gray-500 mb-1"><i class="fa-solid fa-location-dot"></i> ${o.address}</p>
-                        <p class="text-xs text-gray-500"><i class="fa-regular fa-clock"></i> ${o.date}</p>
-                    </div>
-                    <div class="text-left md:text-right">
-                        <p class="text-sm font-black text-[#d96a56] mb-2">${formatRupiahSimple(pInfo.total || 0)}</p>
-                        <div class="flex flex-wrap gap-2 md:justify-end">
-                            ${actions}
-                            <button onclick="printInvoice('${o.id}')" class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-xs"><i class="fa-solid fa-print"></i> Cetak</button>
-                            ${o.status !== 'batal' && o.status !== 'selesai' ? `<button onclick="updateOrderStatus('${o.id}', 'batal')" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs border border-red-200">Batalkan</button>` : ''}
-                        </div>
-                    </div>
-                </div>
-                `;
+            let items = [];
+            if (Array.isArray(order.items)) items = order.items;
+            else if (typeof order.items === 'string') { try { items = JSON.parse(order.items); } catch(e){} }
+            
+            let payInfo = order.paymentInfo || {};
+            if (typeof payInfo === 'string') { try { payInfo = JSON.parse(payInfo); } catch(e){} }
+
+            let subtotalItems = 0;
+            let itemsRows = items.map(item => {
+                let itemTotal = (item.sellPrice || 0) * (item.qty || 1);
+                subtotalItems += itemTotal;
+                let varText = (item.variant && item.variant !== '-') ? `<br><small style="color:#666;">Variasi: ${item.variant}</small>` : '';
+                return `<tr>
+                    <td>${item.name}${varText}</td>
+                    <td class="center">${item.qty || 1}</td>
+                    <td class="right">${formatRupiahSimple(item.sellPrice || 0)}</td>
+                    <td class="right">${formatRupiahSimple(itemTotal)}</td>
+                </tr>`;
             }).join('');
+
+            let diskonOngkirHtml = (payInfo.ongkirDiscount > 0) ? `<div class="total-row text-green"><span>Diskon Ongkir:</span> <span>-${formatRupiahSimple(payInfo.ongkirDiscount)}</span></div>` : '';
+            let diskonPromoHtml = (payInfo.diskon > 0) ? `<div class="total-row text-green"><span>Diskon Promo:</span> <span>-${formatRupiahSimple(payInfo.diskon)}</span></div>` : '';
+            let tukarPoinHtml = (payInfo.pointsToUse > 0) ? `<div class="total-row text-orange"><span>Tukar Poin:</span> <span>-${formatRupiahSimple(payInfo.pointsToUse)}</span></div>` : '';
+            
+            let dpHtml = '';
+            if (payInfo.method && payInfo.method.includes('DP')) {
+                dpHtml = `<div class="total-row" style="margin-top:10px;"><span>Telah DP (QRIS):</span> <span class="text-green">${formatRupiahSimple(payInfo.dpAmount || 0)}</span></div>
+                          <div class="total-row bold" style="color: #dc2626;"><span>Sisa Kurang Bayar (Tunai):</span> <span>${formatRupiahSimple(payInfo.remaining || 0)}</span></div>`;
+            }
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) return showToast('Peringatan', 'Pop-up browser terblokir. Izinkan pop-up untuk mencetak.');
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Invoice - ${order.id}</title>
+                    <style>
+                        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 40px; color: #333; line-height: 1.5; }
+                        .header { text-align: center; border-bottom: 2px dashed #ccc; padding-bottom: 20px; margin-bottom: 20px; }
+                        .header h2 { margin: 0 0 5px 0; color: #16a34a; font-size: 24px; }
+                        .header p { margin: 0; color: #666; font-size: 14px; }
+                        .details-container { display: flex; justify-content: space-between; margin-bottom: 20px; }
+                        .details { font-size: 14px; }
+                        .details strong { display: inline-block; width: 110px; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px; }
+                        th { background-color: #f9fafb; border-bottom: 2px solid #e5e7eb; padding: 12px 8px; text-align: left; }
+                        td { border-bottom: 1px solid #e5e7eb; padding: 12px 8px; vertical-align: top; }
+                        .right { text-align: right; }
+                        .center { text-align: center; }
+                        .text-green { color: #16a34a; }
+                        .text-orange { color: #f97316; }
+                        .summary-box { float: right; width: 350px; background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; }
+                        .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+                        .total-row.bold { font-weight: bold; border-top: 2px solid #e5e7eb; padding-top: 10px; margin-top: 10px; font-size: 16px; }
+                        .footer { text-align: center; margin-top: 80px; padding-top: 20px; border-top: 1px dashed #e5e7eb; font-size: 12px; color: #6b7280; clear: both; }
+                        @media print {
+                            body { margin: 0; padding: 20px; }
+                            .summary-box { border: none; background: transparent; padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>TOKO PIYUNGAN</h2>
+                        <p>Sistem Pembelanjaan Grosir & Eceran Terpercaya</p>
+                        <p>Telp: 08225328613</p>
+                    </div>
+                    <div class="details-container">
+                        <div class="details">
+                            <div><strong>No. Pesanan</strong>: ${order.id}</div>
+                            <div><strong>Tanggal</strong>: ${order.date}</div>
+                            <div><strong>Status</strong>: ${order.status.replace('_', ' ').toUpperCase()}</div>
+                        </div>
+                        <div class="details">
+                            <div><strong>Pelanggan</strong>: ${order.customerName}</div>
+                            <div><strong>No. HP</strong>: ${order.customerPhone}</div>
+                            <div><strong>Pengiriman</strong>: ${order.shippingMethod === 'pickup' ? 'Ambil di Toko' : 'Delivery'}</div>
+                        </div>
+                    </div>
+                    <div class="details" style="margin-bottom: 30px; background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid #eee;">
+                        <div><strong>Alamat Kirim:</strong> ${order.address}</div>
+                        ${order.note && order.note !== '-' ? `<div style="margin-top:8px; border-top: 1px dashed #ccc; padding-top:8px;"><strong>Catatan:</strong> ${order.note}</div>` : ''}
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Produk</th>
+                                <th class="center" style="width: 50px;">Qty</th>
+                                <th class="right" style="width: 120px;">Harga Satuan</th>
+                                <th class="right" style="width: 120px;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsRows}
+                        </tbody>
+                    </table>
+
+                    <div class="summary-box">
+                        <div class="total-row"><span>Subtotal Produk:</span> <span>${formatRupiahSimple(subtotalItems)}</span></div>
+                        <div class="total-row"><span>Ongkos Kirim:</span> <span>${formatRupiahSimple(payInfo.shippingCost || 0)}</span></div>
+                        ${diskonOngkirHtml}
+                        ${diskonPromoHtml}
+                        ${tukarPoinHtml}
+                        <div class="total-row bold"><span>Total Belanja:</span> <span>${formatRupiahSimple(payInfo.total || 0)}</span></div>
+                        
+                        <div class="total-row" style="margin-top: 15px; font-size:12px; color:#666;">
+                            <span>Metode Bayar:</span> <span style="text-align: right; max-width: 180px;">${payInfo.method || '-'}</span>
+                        </div>
+                        ${dpHtml}
+                    </div>
+
+                    <div class="footer">
+                        <p><b>Terima kasih telah berbelanja di Toko Piyungan!</b></p>
+                        <p>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan.</p>
+                        <p><i>Dicetak pada: ${new Date().toLocaleString('id-ID')}</i></p>
+                    </div>
+                    <script>
+                        window.onload = function() { 
+                            window.print(); 
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
 
-
-        // INITIALIZATION
+        // ==========================================
+        // INISIALISASI & GLOBAL BINDING
+        // ==========================================
         async function initApp() {
+            // Tampilkan Data Default Terlebih Dahulu (Offline / Fallback)
+            appProducts = [...DUMMY_PRODUCTS];
+            appWebApps = [...DUMMY_WEBAPPS];
+            appCatering = [...DUMMY_CATERING];
+            appOrders = [...DUMMY_ORDERS];
+            
+            renderHomeBanners();
+            renderBrands(); 
+            renderPromoProducts();
+            renderProducts();
+            renderWebApps();
+            renderAdminProducts();
+            renderAdminCatering();
+            renderAdminWebApps();
+            renderAdminOrders();
+
+            // Jalankan Bot Pembeli Palsu
+            startFakeBuyerBot();
+
+            // Setup Pemicu Popup Promo Otomatis (12 Detik Setelah Buka App)
+            setTimeout(() => {
+                if (globalPopupImg && !sessionStorage.getItem('promoShown')) {
+                    const homeView = document.getElementById('view-home');
+                    if (homeView && !homeView.classList.contains('hidden')) {
+                        const imgEl = document.getElementById('promo-popup-img');
+                        const modal = document.getElementById('modal-promo-popup');
+                        if (imgEl && modal) {
+                            imgEl.src = globalPopupImg;
+                            modal.classList.remove('hidden');
+                            sessionStorage.setItem('promoShown', 'true');
+                        }
+                    }
+                }
+            }, 12000);
+
             showLoader();
             try {
+                if (firebaseConfig.apiKey === "API_KEY_ANDA") {
+                    console.warn("API Key Firebase manual belum diisi. Pastikan Anda sudah mengisinya jika menjalankan aplikasi di luar pratinjau ini.");
+                    showToast("Mode Lokal", "Firebase belum diatur. Aplikasi berjalan offline.");
+                    hideLoader();
+                    return;
+                }
+
+                // Inisialisasi Auth Terpisah
                 const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (authError) {
+                        console.warn("Token terputus, menjalankan aplikasi di mode offline...", authError);
+                        showToast("Mode Lokal", "Koneksi Firebase ditolak. Data tersimpan di memori sementara.");
                     }
                 };
+
                 await initAuth();
-                
+
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
-                        isFirebaseReady = true;
-                        setupFirestoreListeners();
-                        startFakeBuyerBot();
-                        switchView('view-home');
-                    } else {
-                        hideLoader();
+                        if(!isFirebaseReady) {
+                            isFirebaseReady = true;
+                            setupFirestoreListeners();
+                        }
                     }
                 });
-            } catch(e) {
-                console.error("Firebase init failed:", e);
-                // Fallback to local data
-                appProducts = DUMMY_PRODUCTS;
-                appWebApps = DUMMY_WEBAPPS;
-                appCatering = DUMMY_CATERING;
-                renderBrands(); renderProducts(); renderWebApps();
-                renderHomeBanners();
-                hideLoader();
-                startFakeBuyerBot();
-                switchView('view-home');
+            } catch (error) {
+                console.error("Firebase init error:", error);
+                showToast("Mode Lokal", "Koneksi gagal. Aplikasi berjalan offline.");
+            } finally {
+                setTimeout(() => hideLoader(), 500);
             }
         }
 
-        // GLOBAL EXPORTS
+        // Ekspor fungsi ke global scope agar bisa dipanggil dari HTML onclick (karena type="module")
         window.switchView = switchView;
+        window.handleCartNav = handleCartNav;
+        window.handleOrdersNav = handleOrdersNav;
+        window.handleChatNav = handleChatNav;
+        window.handleProfileNav = handleProfileNav;
         window.switchTopUpTab = switchTopUpTab;
         window.selectCard = selectCard;
+        window.clearPhone = clearPhone;
+        window.checkProvider = checkProvider;
         window.processTopupCheckout = processTopupCheckout;
-        window.handleCartNav = handleCartNav;
-        window.updateQty = updateQty;
-        window.setShippingMethod = setShippingMethod;
-        window.setPaymentMethod = setPaymentMethod;
-        window.resetLocation = resetLocation;
-        window.detectLocation = detectLocation;
-        window.calculateTotal = calculateTotal;
-        window.checkoutCart = checkoutCart;
-        window.handleOrdersNav = handleOrdersNav;
-        window.filterOrders = filterOrders;
-        window.handleChatNav = handleChatNav;
-        window.sendChatMessage = sendChatMessage;
-        window.handleProfileNav = handleProfileNav;
-        window.toggleAuth = toggleAuth;
-        window.handleRegister = handleRegister;
-        window.handleLogin = handleLogin;
-        window.handleLogout = handleLogout;
-        window.copyReferral = copyReferral;
+        window.filterProductsByCategory = filterProductsByCategory;
+        window.renderPromoProducts = renderPromoProducts;
+        window.expandProducts = expandProducts;
         window.openProductModal = openProductModal;
         window.closeProductModal = closeProductModal;
         window.changeModalImg = changeModalImg;
@@ -2990,24 +3265,36 @@
         window.closeWebAppModal = closeWebAppModal;
         window.changeWebAppModalImg = changeWebAppModalImg;
         window.addWebAppToCart = addWebAppToCart;
-        window.expandProducts = expandProducts;
-        window.filterProductsByCategory = filterProductsByCategory;
-        window.checkProvider = checkProvider;
-        window.clearPhone = clearPhone;
+        window.updateQty = updateQty;
+        window.setShippingMethod = setShippingMethod;
+        window.setPaymentMethod = setPaymentMethod;
+        window.resetLocation = resetLocation;
+        window.detectLocation = detectLocation;
         window.applyManualVoucher = applyManualVoucher;
+        window.calculateTotal = calculateTotal;
+        window.checkoutCart = checkoutCart;
+        window.filterOrders = filterOrders;
+        window.sendChatMessage = sendChatMessage;
+        window.toggleAuth = toggleAuth;
+        window.handleRegister = handleRegister;
+        window.handleLogin = handleLogin;
+        window.handleLogout = handleLogout;
+        window.togglePassword = togglePassword;
+        window.copyReferral = copyReferral;
+        window.switchAdminTab = switchAdminTab;
         window.saveBanners = saveBanners;
         window.saveAdsBanners = saveAdsBanners;
-        window.switchAdminTab = switchAdminTab;
         window.saveCategoryProduk = saveCategoryProduk;
+        window.showToast = showToast;
         window.clearAdminProductForm = clearAdminProductForm;
+        window.editAdminProduct = editAdminProduct;
         window.saveAdminProduct = saveAdminProduct;
         window.deleteAdminProduct = deleteAdminProduct;
-        window.editAdminProduct = editAdminProduct;
         window.renderAdminProducts = renderAdminProducts;
         window.clearAdminCateringForm = clearAdminCateringForm;
+        window.editAdminCatering = editAdminCatering;
         window.saveAdminCatering = saveAdminCatering;
         window.deleteAdminCatering = deleteAdminCatering;
-        window.editAdminCatering = editAdminCatering;
         window.renderAdminCatering = renderAdminCatering;
         window.clearAdminWebAppForm = clearAdminWebAppForm;
         window.editAdminWebApp = editAdminWebApp;
